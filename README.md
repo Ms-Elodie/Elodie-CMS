@@ -1,21 +1,9 @@
-![UAG CMS](http://julien-et-nel.be/UAG/logo.png)
+UAG CMS était un moteur de blog que j’avais coðée, il y a longtemps pour avoir une solution maison correspondant à mes besoins de blogging.
 
-UAG CMS est un moteur de blog simple et léger sans base de données.
+J’aimais fortement bidouillée, j’ai fais de même pour blockcolor par la suite et j’ai participé a pas mal de choses, mais j’ai toujours eu tendance à abandonner mes projets à cause de ma santée et autres problèmes.
 
-UAG CMS is a simple blog engine light without database.
+Je tenais a faire copie du script, si un jour j’ai la force de le mettre à jour.
 
-UAG CMS is een eenvoudig blog engine licht zonder database.
+le site de julien-et-nel.be ne m'appartient plus mais je remercie aux repreneurw d'avoir laissé quelques memoires à cet ancien projet.
 
-UAG CMS es una luz blog de motor simple sin base de datos.
-
--
-
-UAG CMS 8.53 est une version bêta | UAG CMS 8.52 est une version stable.
-
-UAG Version 8.52 : https://github.com/JulienetNel/UAG-CMS/tree/f06113d275f9e00f76db701ef3e919371adf91c5 .
-
--
-
-UAG CMS 8.53  is a prerelease version | UAG CMS 8.52 is a stable release.
-
-UAG Version 8.52 : https://github.com/JulienetNel/UAG-CMS/tree/f06113d275f9e00f76db701ef3e919371adf91c5 .
+Je déconseille fortement l'utilisation de ce projet a l'heure actuelle, il est vieux et n’est plus sécurisé, mais il reste intéressant dans un but d'apprentissage de ce qui pouvait se faire à l’epoque.
