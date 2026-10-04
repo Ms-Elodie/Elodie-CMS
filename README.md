@@ -23,6 +23,7 @@ Cette version conserve l’interface existante et migre automatiquement les rég
 - Le site public et l’administration utilisent une interface responsive adaptée aux téléphones, tablettes et ordinateurs. L’administration possède une navigation persistante sans fenêtres flottantes ni iframes ; les articles, médias, commentaires et réglages s’ouvrent comme des pages normales.
 - L’éditeur d’articles propose un mode visuel, Markdown ou BBCode par article, des outils de mise en forme, l’insertion d’images déjà téléversées et une version texte de secours si JavaScript est désactivé. Le HTML reste assaini côté serveur avant enregistrement et à l’affichage.
 - Les pages autonomes, dont la page « À propos », sont gérées séparément des articles. La page Apparence permet de régler le titre, la description, les couleurs, le logo, l’image d’arrière-plan et le favicon ; les images peuvent être choisies dans les médias envoyés ou renseignées par URL.
+- La couleur d’arrière-plan choisie dans Apparence s’affiche sans voile gris qui en altère le rendu.
 - Les éléments du menu peuvent cibler une URL, un article ou une page et être réordonnés depuis les réglages. Le flux RSS reste disponible sans apparaître dans le menu principal.
 - Les pages d’installation, de connexion et de sécurité reprennent les mêmes styles adaptatifs et présentent leurs formulaires dans des panneaux lisibles sur petit écran.
 - Les libellés historiques du CMS et les dates des articles sont disponibles en français, anglais, espagnol, néerlandais, allemand, italien et portugais.
