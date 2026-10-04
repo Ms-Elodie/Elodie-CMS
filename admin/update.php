@@ -2,105 +2,101 @@
 
 require_once __DIR__ . '/security.php';
 require __DIR__ . '/verif.php';
+include __DIR__ . '/langues.php';
+require_once __DIR__ . '/fonctions.php';
+require_once __DIR__ . '/updater.php';
+$page = 'update';
 
 $checked = ($_GET['check'] ?? '') === '1';
 $message = '';
+$updateResult = '';
 $releaseUrl = '';
 $latestVersion = '';
 $hasUpdate = false;
 
-if ($checked) {
-    $context = stream_context_create([
-        'http' => [
-            'method' => 'GET',
-            'timeout' => 5,
-            'ignore_errors' => true,
-            'header' => "Accept: application/vnd.github+json\r\n"
-                . 'User-Agent: ElodieCMS/' . elodie_cms_version() . "\r\n"
-                . "X-GitHub-Api-Version: 2022-11-28\r\n",
-        ],
-        'ssl' => [
-            'verify_peer' => true,
-            'verify_peer_name' => true,
-        ],
-    ]);
-    $response = @file_get_contents(
-        'https://api.github.com/repos/Ms-Elodie/Elodie-CMS/releases/latest',
-        false,
-        $context
-    );
-    $statusLine = $http_response_header[0] ?? '';
-    preg_match('/\s([0-9]{3})\s/', $statusLine, $statusMatches);
-    $statusCode = isset($statusMatches[1]) ? (int) $statusMatches[1] : 0;
-
-    if ($statusCode === 404) {
-        $message = 'Aucune version officielle n’est encore publiée sur GitHub.';
-    } elseif ($response === false || $statusCode !== 200) {
-        $message = 'Vérification impossible. Réessayez plus tard ou consultez les versions sur GitHub.';
-    } else {
-        $release = json_decode($response, true);
-        $tag = is_array($release) && is_string($release['tag_name'] ?? null)
-            ? $release['tag_name']
-            : '';
-        $candidateUrl = is_array($release) && is_string($release['html_url'] ?? null)
-            ? $release['html_url']
-            : '';
-        $urlParts = parse_url($candidateUrl);
-        if (!preg_match('/^v?([0-9]+(?:\.[0-9]+){1,2})$/', $tag, $versionMatches)
-            || !is_array($urlParts)
-            || ($urlParts['scheme'] ?? '') !== 'https'
-            || ($urlParts['host'] ?? '') !== 'github.com'
-            || !str_starts_with(
-                $urlParts['path'] ?? '',
-                '/Ms-Elodie/Elodie-CMS/releases/tag/'
-            )) {
-            $message = 'La version reçue de GitHub n’a pas un format reconnu.';
-        } else {
-            $latestVersion = $versionMatches[1];
-            $releaseUrl = $candidateUrl;
-            $hasUpdate = version_compare($latestVersion, elodie_cms_version(), '>');
-            $message = $hasUpdate
-                ? 'Une nouvelle version est disponible.'
-                : 'Elodie CMS est déjà à jour.';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    elodie_cms_require_valid_csrf_token();
+    if (($_POST['install'] ?? '') !== '1') {
+        http_response_code(400);
+        exit(elodie_cms_ui('invalid_form'));
+    }
+    try {
+        $release = elodie_cms_fetch_latest_release();
+        if (version_compare($release['version'], elodie_cms_release_version(), '<=')) {
+            throw new RuntimeException(elodie_cms_ui('update_no_update'));
         }
+        $backupPath = elodie_cms_update_install_release($release['version'], $release['url']);
+        $_SESSION['elodie_cms_update_result'] = sprintf(elodie_cms_ui('update_complete'), $backupPath);
+    } catch (RuntimeException $exception) {
+        $_SESSION['elodie_cms_update_result'] = $exception->getMessage();
+    }
+    header('Location: update.php?check=1');
+    exit();
+}
+
+elodie_cms_start_session();
+$updateResult = is_string($_SESSION['elodie_cms_update_result'] ?? null)
+    ? $_SESSION['elodie_cms_update_result']
+    : '';
+unset($_SESSION['elodie_cms_update_result']);
+
+if ($checked) {
+    try {
+        $release = elodie_cms_fetch_latest_release();
+        $latestVersion = $release['version'];
+        $releaseUrl = 'https://github.com/Ms-Elodie/Elodie-CMS/releases/tag/'
+            . rawurlencode($release['tag']);
+        $hasUpdate = version_compare($latestVersion, elodie_cms_release_version(), '>');
+        $message = $hasUpdate
+            ? elodie_cms_ui('update_available')
+            : elodie_cms_ui('up_to_date');
+    } catch (RuntimeException $exception) {
+        $message = $exception->getMessage();
     }
 }
 
 ?>
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="<?= elodie_cms_escape($GLOBALS['elodieCmsLanguage']) ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Mise à jour - Elodie CMS</title>
-    <link rel="stylesheet" href="defaut.css">
-    <link rel="stylesheet" href="defaut2.css">
+    <title><?= elodie_cms_escape(elodie_cms_ui('updates')) ?> - Elodie CMS</title>
     <link rel="stylesheet" href="mobile.css">
-    <style>
-        body { max-width: 48rem; margin: 1rem auto; padding: 0 1rem; }
-        .update-panel { margin: 1rem 0; padding: 1rem; border: 1px solid #aaa; background: #fff; }
-        .update-panel button { min-height: 2.75rem; padding: .6rem 1rem; }
-    </style>
 </head>
-<body>
-    <h1>Elodie CMS <?= elodie_cms_escape(elodie_cms_version()) ?></h1>
-    <p><a href="index.php">Retour au tableau de bord</a></p>
-    <section class="update-panel">
-        <h2>Vérifier les mises à jour</h2>
-        <p>Cette vérification est lancée uniquement à votre demande et contacte l’API GitHub. Le CMS ne télécharge ni n’installe de fichiers automatiquement.</p>
+<body class="admin">
+    <?php include __DIR__ . '/includes/topbar.php'; ?>
+    <div class="admin-layout">
+        <?php include __DIR__ . '/includes/menu.php'; ?>
+        <main class="admin-main" id="contenu2">
+        <div class="admin-page-heading"><p class="admin-eyebrow"><?= elodie_cms_escape(elodie_cms_ui('administration')) ?></p><h1><?= elodie_cms_escape(elodie_cms_ui('updates')) ?></h1></div>
+        <section class="admin-content update-panel">
+        <h2><?= elodie_cms_escape(elodie_cms_ui('updates_title')) ?></h2>
+        <p><?= elodie_cms_escape(elodie_cms_ui('updates_help')) ?></p>
         <form method="get" action="update.php">
-            <button type="submit" name="check" value="1">Vérifier sur GitHub</button>
+            <button type="submit" name="check" value="1"><?= elodie_cms_escape(elodie_cms_ui('check_github')) ?></button>
         </form>
         <?php if ($checked): ?>
             <p role="status"><?= elodie_cms_escape($message) ?></p>
             <?php if ($latestVersion !== ''): ?>
-                <p>Version installée : <?= elodie_cms_escape(elodie_cms_version()) ?> · Version publiée : <?= elodie_cms_escape($latestVersion) ?></p>
+                <p><?= elodie_cms_escape(sprintf(elodie_cms_ui('installed_version'), elodie_cms_version(), $latestVersion)) ?></p>
             <?php endif; ?>
-            <?php if ($hasUpdate): ?>
-                <p><a href="<?= elodie_cms_escape($releaseUrl) ?>" target="_blank" rel="noopener noreferrer">Consulter la mise à jour <?= elodie_cms_escape($latestVersion) ?> sur GitHub</a></p>
+            <?php if ($updateResult !== ''): ?>
+                <p role="status"><?= elodie_cms_escape($updateResult) ?></p>
+            <?php endif; ?>
+            <?php if ($hasUpdate && $_SERVER['REQUEST_METHOD'] !== 'POST'): ?>
+                <p><?= elodie_cms_escape(elodie_cms_ui('update_confirmation')) ?></p>
+                <form method="post" action="update.php">
+                    <?= elodie_cms_csrf_input() ?>
+                    <input type="hidden" name="install" value="1">
+                    <button type="submit"><?= elodie_cms_escape(elodie_cms_ui('update_button')) ?></button>
+                </form>
+                <p><a href="<?= elodie_cms_escape($releaseUrl) ?>" target="_blank" rel="noopener noreferrer"><?= elodie_cms_escape(sprintf(elodie_cms_ui('view_update'), $latestVersion)) ?></a></p>
             <?php endif; ?>
         <?php endif; ?>
-        <p><a href="https://github.com/Ms-Elodie/Elodie-CMS/releases" target="_blank" rel="noopener noreferrer">Consulter toutes les versions publiées</a></p>
+        <p><a href="https://github.com/Ms-Elodie/Elodie-CMS/releases" target="_blank" rel="noopener noreferrer"><?= elodie_cms_escape(elodie_cms_ui('all_releases')) ?></a></p>
     </section>
+        </main>
+    </div>
 </body>
 </html>

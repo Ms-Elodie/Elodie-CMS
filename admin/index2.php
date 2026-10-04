@@ -1,5 +1,4 @@
 <?php
-
 require_once __DIR__ . '/security.php';
 
 if (!elodie_cms_is_installed()) {
@@ -7,81 +6,49 @@ if (!elodie_cms_is_installed()) {
     exit();
 }
 
-include('./verif.php');
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    elodie_cms_require_valid_csrf_token();
-}
-error_reporting(0); 
-include 'langues.php';
-require 'fonctions.php';
+$legacyPage = $_GET['page'] ?? '';
+$legacyPage = is_string($legacyPage) ? $legacyPage : '';
+$viewPages = ['liste', 'ajouter', 'editer', 'images', 'configuration'];
 
-echo'
-<style type="text/css">
-html{
-background:none !important;
-};
-</style>
-<link rel="stylesheet" href="defaut.css" />
-<link rel="stylesheet" href="defaut2.css" />
-<link rel="stylesheet" href="jquery/css/ui-lightness/jquery-ui-1.10.2.custom.css" />
-<link rel="stylesheet" href="mobile.css" />
-<script src="js/jquery.coda-slider-3.0.js"></script>
-<script src="js/jquery.min.js"></script>
-<script src="js/jquery-ui.min.js"></script>
-<script>
-      $(function() {
-        $(\'#main-slider\').codaSlider({
-          autoHeight: false,
-          continuous:false,
-          dynamicArrows: false,
-          dynamicTabs: false
-        });
-        $(\'#showcase\').codaSlider();
-        $(\'#continuous\').codaSlider({
-          autoSlide: false,
-          continuous: false,
-          dynamicArrowsGraphical: false,
-          dynamicTabsAlign: "right",
-          dynamicTabsPosition: "bottom",
-          panelTitleSelector: "div.title"
-        });
-        $(\'#dynamic-tabs\').codaSlider({
-          autoSlideControls:false,
-          dynamicTabsAlign: "left",
-          dynamicTabsPosition: "top",
-          dynamicArrows: false
-        })
-        $(\'#information\').codaSlider({
-          dynamicArrows: false,
-          dynamicTabs: false,
-          slideEaseFunction: "easeOutCirc"
-        });
-      });
-      </script>
-<body onload="whizzywig()">';
-
-switch (is_string($_GET['page'] ?? null) ? $_GET['page'] : '')
-{
-
-case 'liste': liste_news(); break;
-
-case 'supprimer': supprimer_news(); break;
-
-case 'ajouter': anti_slash(); ajout_news(); break;
-
-case 'editer': anti_slash(); editer_news(); break;
-
-case 'images': formulaire_images(); images(); break;
-
-case 'upload': envoyer_images(); break;
-
-case 'delete': supprimer_images(); break;
-
-case 'configuration': configuration(); break;
-
-case 'blog': blog(); break;
-
-default : ;
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $destination = 'index.php';
+    if (in_array($legacyPage, $viewPages, true)) {
+        $destination .= '?page=' . rawurlencode($legacyPage);
+        if (isset($_GET['id']) && is_string($_GET['id']) && ctype_digit($_GET['id'])) {
+            $destination .= '&id=' . rawurlencode($_GET['id']);
+        }
+    } elseif ($legacyPage === 'blog') {
+        $destination = '../index2.php';
+    }
+    header('Location: ' . $destination);
+    exit();
 }
 
-?>
+require __DIR__ . '/verif.php';
+elodie_cms_require_valid_csrf_token();
+include __DIR__ . '/langues.php';
+require __DIR__ . '/fonctions.php';
+
+switch ($legacyPage) {
+    case 'supprimer':
+        supprimer_news();
+        break;
+    case 'upload':
+        envoyer_images();
+        break;
+    case 'delete':
+        supprimer_images();
+        break;
+    case 'configuration':
+        configuration();
+        break;
+    case 'ajouter':
+        ajout_news();
+        break;
+    case 'editer':
+        editer_news();
+        break;
+    default:
+        http_response_code(400);
+        exit('Action administrative inconnue.');
+}

@@ -9,7 +9,7 @@ include 'langues.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !elodie_cms_has_valid_csrf_token()) {
     http_response_code(403);
-    exit('Jeton de sécurité invalide.');
+    exit(elodie_cms_ui('invalid_csrf'));
 }
 
 $login = $_POST['login'] ?? null;
@@ -23,11 +23,11 @@ $login = trim($login);
 if (strlen($login) > 120 || strlen($password) > 4096) {
     elodie_cms_record_login_failure(substr($login, 0, 120));
     http_response_code(400);
-    exit('Identifiant ou mot de passe invalide.');
+    exit(elodie_cms_ui('invalid_credentials'));
 }
 if (elodie_cms_login_rate_limited($login)) {
     http_response_code(429);
-    exit('Trop de tentatives. Réessayez dans 15 minutes.');
+    exit(elodie_cms_ui('too_many_attempts'));
 }
 
 $user = elodie_cms_user($login);

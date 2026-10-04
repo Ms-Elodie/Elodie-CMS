@@ -1,10 +1,16 @@
 <?php
 
 require_once __DIR__ . '/storage.php';
+require_once __DIR__ . '/../lang/interface.php';
 
 function elodie_cms_version(): string
 {
-    return '1.00';
+    return '1.01 Cat';
+}
+
+function elodie_cms_release_version(): string
+{
+    return '1.01';
 }
 
 function elodie_cms_start_session(): void
@@ -57,7 +63,7 @@ function elodie_cms_require_valid_csrf_token(): void
 {
     if (!elodie_cms_has_valid_csrf_token()) {
         http_response_code(403);
-        exit('Jeton de sécurité invalide.');
+        exit(elodie_cms_ui('invalid_csrf'));
     }
 }
 
@@ -362,7 +368,7 @@ function elodie_cms_sanitize_article_html(string $html): string
     }
 
     $allowedTags = [
-        'a', 'b', 'blockquote', 'br', 'code', 'em', 'h2', 'h3', 'h4',
+        'a', 'b', 'blockquote', 'br', 'code', 'div', 'em', 'h2', 'h3', 'h4',
         'hr', 'i', 'img', 'li', 'ol', 'p', 'pre', 's', 'strong', 'u', 'ul',
     ];
     $removedTags = [
@@ -401,12 +407,22 @@ function elodie_cms_sanitize_article_html(string $html): string
                 $allowedAttributes = match ($tag) {
                     'a' => ['href', 'title', 'target'],
                     'img' => ['src', 'alt', 'title', 'width', 'height'],
+                    'blockquote', 'div', 'h2', 'h3', 'h4', 'p' => ['style'],
                     default => [],
                 };
 
                 foreach (iterator_to_array($child->attributes) as $attribute) {
                     if (!in_array(strtolower($attribute->name), $allowedAttributes, true)) {
                         $child->removeAttribute($attribute->name);
+                    }
+                }
+
+                if ($child->hasAttribute('style')) {
+                    $style = trim($child->getAttribute('style'));
+                    if (preg_match('/^text-align\s*:\s*(left|center|right|justify)\s*;?$/i', $style, $matches) === 1) {
+                        $child->setAttribute('style', 'text-align: ' . strtolower($matches[1]));
+                    } else {
+                        $child->removeAttribute('style');
                     }
                 }
 
