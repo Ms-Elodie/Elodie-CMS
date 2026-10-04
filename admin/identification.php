@@ -20,8 +20,8 @@ if (!is_string($login) || !is_string($password) || $login === '' || $password ==
 }
 
 $login = trim($login);
-if (strlen($login) > 120 || strlen($password) > 4096) {
-    elodie_cms_record_login_failure(substr($login, 0, 120));
+if (strlen($login) > 480 || strlen($password) > 4096) {
+    elodie_cms_record_login_failure(substr($login, 0, 480));
     http_response_code(400);
     exit(elodie_cms_ui('invalid_credentials'));
 }

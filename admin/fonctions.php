@@ -75,13 +75,259 @@ echo'<div id="pays"><p>'.Pays.'</p></div>';
 
 }
 
-/* Configuration du blog */ 
+function elodie_cms_submitted_menu_items(array $articles, array $pages): array
+{
+    $submittedItems = $_POST['menu'] ?? [];
+    if (!is_array($submittedItems) || count($submittedItems) > 20) {
+        throw new InvalidArgumentException(elodie_cms_ui('invalid_form'));
+    }
+
+    $items = [];
+    foreach ($submittedItems as $item) {
+        if (!is_array($item)
+            || !is_string($item['label'] ?? null)
+            || !is_string($item['type'] ?? null)) {
+            throw new InvalidArgumentException(elodie_cms_ui('invalid_form'));
+        }
+        $label = trim($item['label']);
+        $type = $item['type'];
+        if ($label === '' || strlen($label) > 320 || preg_match('//u', $label) !== 1
+            || preg_match('/[\x00-\x1F\x7F]/', $label) || !in_array($type, ['link', 'article', 'page'], true)) {
+            throw new InvalidArgumentException(elodie_cms_ui('invalid_form'));
+        }
+
+        if ($type === 'link') {
+            $target = $item['url'] ?? null;
+            if (!is_string($target) || strlen($target) > 2048 || !elodie_cms_valid_menu_url($target)) {
+                throw new InvalidArgumentException(elodie_cms_ui('invalid_resource_url'));
+            }
+        } elseif ($type === 'article') {
+            $target = $item['article'] ?? null;
+            if (!is_string($target) || !ctype_digit($target) || !array_key_exists((int) $target, $articles)) {
+                throw new InvalidArgumentException(elodie_cms_ui('invalid_form'));
+            }
+        } else {
+            $target = $item['page'] ?? null;
+            $pageSlugs = array_column($pages, 'slug');
+            if (!is_string($target) || !in_array($target, $pageSlugs, true)) {
+                throw new InvalidArgumentException(elodie_cms_ui('invalid_form'));
+            }
+        }
+
+        $items[] = ['label' => $label, 'type' => $type, 'target' => $target];
+    }
+
+    return $items;
+}
+
+function elodie_cms_render_menu_editor(array $menuItems, array $articles, array $pages): void
+{
+    $labels = [
+        'title' => elodie_cms_ui('menu_title'),
+        'help' => elodie_cms_ui('menu_help'),
+        'add' => elodie_cms_ui('menu_add'),
+        'remove' => elodie_cms_ui('menu_remove'),
+        'up' => elodie_cms_ui('menu_up'),
+        'down' => elodie_cms_ui('menu_down'),
+        'label' => elodie_cms_ui('menu_label'),
+        'type' => elodie_cms_ui('menu_type'),
+        'link' => elodie_cms_ui('menu_link'),
+        'article' => elodie_cms_ui('menu_article'),
+        'choose_article' => elodie_cms_ui('menu_choose_article'),
+        'page' => elodie_cms_ui('menu_page'),
+        'choose_page' => elodie_cms_ui('menu_choose_page'),
+    ];
+    $renderRow = static function (array $item, int $index) use ($labels, $articles, $pages): string {
+        $type = in_array($item['type'], ['article', 'page'], true) ? $item['type'] : 'link';
+        $target = (string) $item['target'];
+        $html = '<fieldset class="menu-item" data-menu-item><legend>' . elodie_cms_escape($labels['title'])
+            . '</legend><div class="menu-item-fields"><label>' . elodie_cms_escape($labels['label'])
+            . '<input type="text" name="menu[' . $index . '][label]" maxlength="80" required value="'
+            . elodie_cms_escape($item['label']) . '" data-menu-label></label><label>'
+            . elodie_cms_escape($labels['type']) . '<select name="menu[' . $index
+            . '][type]" data-menu-type><option value="link"' . ($type === 'link' ? ' selected' : '') . '>'
+            . elodie_cms_escape($labels['link']) . '</option><option value="article"'
+            . ($type === 'article' ? ' selected' : '') . '>' . elodie_cms_escape($labels['article'])
+            . '</option><option value="page"' . ($type === 'page' ? ' selected' : '') . '>'
+            . elodie_cms_escape($labels['page']) . '</option></select></label><label data-menu-url-field'
+            . ($type !== 'link' ? ' hidden' : '')
+            . '>' . elodie_cms_escape($labels['link']) . '<input type="text" name="menu[' . $index
+            . '][url]" data-menu-url value="' . elodie_cms_escape($type === 'link' ? $target : '') . '" maxlength="2048"'
+            . ($type === 'link' ? ' required' : '') . '></label>'
+            . '<label data-menu-article-field' . ($type !== 'article' ? ' hidden' : '') . '>'
+            . elodie_cms_escape($labels['article']) . '<select name="menu[' . $index . '][article]" data-menu-article'
+            . ($type === 'article' ? ' required' : '') . '><option value="">'
+            . elodie_cms_escape($labels['choose_article']) . '</option>';
+        foreach ($articles as $articleId => $article) {
+            $html .= '<option value="' . (int) $articleId . '"'
+                . ($type === 'article' && (string) $articleId === $target ? ' selected' : '') . '>'
+                . elodie_cms_escape_legacy_text($article['titre']) . '</option>';
+        }
+        $html .= '</select></label><label data-menu-page-field' . ($type !== 'page' ? ' hidden' : '') . '>'
+            . elodie_cms_escape($labels['page']) . '<select name="menu[' . $index . '][page]" data-menu-page'
+            . ($type === 'page' ? ' required' : '') . '><option value="">'
+            . elodie_cms_escape($labels['choose_page']) . '</option>';
+        foreach ($pages as $page) {
+            $html .= '<option value="' . elodie_cms_escape($page['slug']) . '"'
+                . ($type === 'page' && $page['slug'] === $target ? ' selected' : '') . '>'
+                . elodie_cms_escape($page['title']) . '</option>';
+        }
+        return $html . '</select></label></div><div class="menu-item-actions">'
+            . '<button type="button" data-menu-up>' . elodie_cms_escape($labels['up']) . '</button>'
+            . '<button type="button" data-menu-down>' . elodie_cms_escape($labels['down']) . '</button>'
+            . '<button type="button" data-menu-remove>' . elodie_cms_escape($labels['remove']) . '</button>'
+            . '</div></fieldset>';
+    };
+
+    echo '<section class="menu-editor" data-menu-editor><h3>' . elodie_cms_escape($labels['title'])
+        . '</h3><p>' . elodie_cms_escape($labels['help']) . '</p><div data-menu-list>';
+    foreach ($menuItems as $index => $item) {
+        echo $renderRow($item, $index);
+    }
+    echo '</div><template data-menu-template>' . $renderRow(
+        ['label' => '', 'type' => 'link', 'target' => ''],
+        0
+    ) . '</template><button type="button" data-menu-add>' . elodie_cms_escape($labels['add']) . '</button></section>';
+}
+
+function theme_configuration(): void
+{
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $title = trim(elodie_cms_post_string('theme_title'));
+        $description = trim(elodie_cms_post_string('theme_description'));
+        $logo = trim(elodie_cms_post_string('theme_logo'));
+        $logoAlt = trim(elodie_cms_post_string('theme_logo_alt'));
+        $background = trim(elodie_cms_post_string('theme_background'));
+        $favicon = trim(elodie_cms_post_string('theme_favicon'));
+        $colors = [
+            'brand_color' => elodie_cms_post_string('brand_color'),
+            'accent_color' => elodie_cms_post_string('accent_color'),
+            'page_color' => elodie_cms_post_string('page_color'),
+            'text_color' => elodie_cms_post_string('text_color'),
+        ];
+        if ($title === '' || strlen($title) > 480 || strlen($description) > 2000
+            || strlen($logoAlt) > 480 || !preg_match('//u', $title . $description . $logoAlt)
+            || !elodie_cms_valid_url_setting($logo)
+            || !elodie_cms_valid_url_setting($background)
+            || !elodie_cms_valid_url_setting($favicon)) {
+            http_response_code(400);
+            exit(elodie_cms_ui('invalid_form'));
+        }
+        foreach ($colors as $color) {
+            if (!preg_match('/\A#[0-9a-fA-F]{6}\z/', $color)) {
+                http_response_code(400);
+                exit(elodie_cms_ui('invalid_form'));
+            }
+        }
+
+        $configuration = elodie_cms_read_encoded_configuration();
+        foreach ([0 => $title, 26 => $logo, 27 => $logoAlt, 30 => $background, 31 => $favicon] as $index => $value) {
+            $configuration[$index] = base64_encode(htmlentities($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+        }
+        elodie_cms_write_encoded_configuration($configuration);
+        $themeSettings = elodie_cms_read_theme_settings();
+        $themeSettings['description'] = $description;
+        foreach ($colors as $key => $color) {
+            $themeSettings[$key] = $color;
+        }
+        elodie_cms_save_theme_settings($themeSettings);
+        header('Location: index.php?page=theme&saved=1');
+        exit();
+    }
+
+    $configuration = elodie_cms_read_encoded_configuration();
+    $settings = [];
+    foreach ([0 => 'title', 26 => 'logo', 27 => 'logo_alt', 30 => 'background', 31 => 'favicon'] as $index => $key) {
+        $decoded = base64_decode($configuration[$index] ?? '', true);
+        $settings[$key] = is_string($decoded)
+            ? html_entity_decode($decoded, ENT_QUOTES | ENT_HTML5, 'UTF-8')
+            : '';
+    }
+    $themeSettings = elodie_cms_read_theme_settings();
+    $uploadedImages = elodie_cms_article_editor_images();
+    $fields = [
+        'theme_title' => ['theme_site_title', 'title', 'text'],
+        'theme_description' => ['theme_description', 'description', 'textarea'],
+        'theme_logo' => ['theme_logo', 'logo', 'url'],
+        'theme_logo_alt' => ['theme_logo_alt', 'logo_alt', 'text'],
+        'theme_background' => ['theme_background', 'background', 'url'],
+        'theme_favicon' => ['theme_favicon', 'favicon', 'url'],
+    ];
+    echo '<form class="theme-form" method="post" action="index.php?page=theme">' . elodie_cms_csrf_input()
+        . '<p>' . elodie_cms_escape(elodie_cms_ui('theme_help')) . '</p><div class="theme-fields">';
+    foreach ($fields as $name => [$labelKey, $valueKey, $type]) {
+        $value = $valueKey === 'description' ? $themeSettings[$valueKey] : $settings[$valueKey];
+        echo '<label for="' . elodie_cms_escape($name) . '">' . elodie_cms_escape(elodie_cms_ui($labelKey));
+        if ($type === 'textarea') {
+            echo '<textarea id="' . elodie_cms_escape($name) . '" name="' . elodie_cms_escape($name)
+                . '" maxlength="2000">' . elodie_cms_escape($value) . '</textarea>';
+        } else {
+            echo '<input id="' . elodie_cms_escape($name) . '" name="' . elodie_cms_escape($name) . '" type="'
+                . $type . '" value="' . elodie_cms_escape($value)
+                . ($valueKey === 'title' ? '" required' : '"') . (in_array($valueKey, ['logo', 'background', 'favicon'], true)
+                    ? ' data-theme-url' : '') . '>';
+            if (in_array($valueKey, ['logo', 'background', 'favicon'], true)) {
+                echo '<select aria-label="' . elodie_cms_escape(elodie_cms_ui('theme_choose_media'))
+                    . '" data-theme-media><option value="">' . elodie_cms_escape(elodie_cms_ui('theme_choose_media'))
+                    . '</option>';
+                foreach ($uploadedImages as $image) {
+                    echo '<option value="' . elodie_cms_escape($image['url']) . '"'
+                        . ($image['url'] === $value ? ' selected' : '') . '>'
+                        . elodie_cms_escape($image['filename']) . '</option>';
+                }
+                echo '</select><small>' . elodie_cms_escape(elodie_cms_ui('theme_custom_url')) . '</small>';
+            }
+        }
+        echo '</label>';
+    }
+    echo '</div><fieldset class="theme-colors"><legend>' . elodie_cms_escape(elodie_cms_ui('theme_colors'))
+        . '</legend><div class="theme-fields">';
+    foreach ([
+        'brand_color' => 'theme_brand_color',
+        'accent_color' => 'theme_accent_color',
+        'page_color' => 'theme_page_color',
+        'text_color' => 'theme_text_color',
+    ] as $key => $labelKey) {
+        echo '<label for="' . elodie_cms_escape($key) . '">' . elodie_cms_escape(elodie_cms_ui($labelKey))
+            . '<input id="' . elodie_cms_escape($key) . '" name="' . elodie_cms_escape($key)
+            . '" type="color" value="' . elodie_cms_escape($themeSettings[$key]) . '"></label>';
+    }
+    echo '</div></fieldset><button type="submit">' . elodie_cms_escape(Ok) . '</button></form>';
+}
+
+function elodie_cms_ensure_default_about_page(): void
+{
+    $configuration = elodie_cms_read_encoded_configuration();
+    $readSetting = static function (int $index) use ($configuration): string {
+        $value = base64_decode($configuration[$index] ?? '', true);
+        return is_string($value)
+            ? html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8')
+            : '';
+    };
+    $content = [];
+    foreach ([19, 20] as $index) {
+        $value = trim($readSetting($index));
+        if ($value !== '') {
+            $content[] = $value;
+        }
+    }
+    $interests = trim($readSetting(21));
+    if ($interests !== '') {
+        $content[] = '**' . elodie_cms_ui('interests') . '** ' . $interests;
+    }
+    $content[] = elodie_cms_ui('about_ai_1');
+    $content[] = elodie_cms_ui('about_ai_2');
+    elodie_cms_ensure_about_page(elodie_cms_ui('about'), implode("\n\n", $content));
+}
+
+/* Configuration du blog */
 
 function configuration() {
 
 $fichier='configuration.txt';
 $tableau=array();
 $tableau=lire_array($fichier);
+elodie_cms_ensure_default_about_page();
 
 if (($_GET['id'] ?? '') === '2') {
 
@@ -99,8 +345,29 @@ if ($password === '' && (!is_string($currentPasswordHash) || $currentPasswordHas
     throw new RuntimeException('Le mot de passe administrateur actuel est introuvable.');
 }
 
+elodie_cms_ensure_default_about_page();
+$articles = elodie_cms_read_news(__DIR__ . '/../news.php');
+$pages = elodie_cms_read_pages();
+try {
+    $menuItems = elodie_cms_submitted_menu_items($articles, $pages);
+} catch (InvalidArgumentException $exception) {
+    http_response_code(400);
+    exit(elodie_cms_escape($exception->getMessage()));
+}
 $settings = [];
 for ($index = 0; $index < 32; $index++) {
+    if ($index === 0) {
+        $settings[$index] = base64_decode($tableau[$index] ?? '', true) ?: '';
+        continue;
+    }
+    if (in_array($index, [16, 17, 18, 22, 23, 24, 25], true)) {
+        $settings[$index] = '';
+        continue;
+    }
+    if (in_array($index, [26, 27, 30, 31], true)) {
+        $settings[$index] = base64_decode($tableau[$index] ?? '', true) ?: '';
+        continue;
+    }
     if ($index === 7) {
         $settings[$index] = $password === ''
             ? $currentPasswordHash
@@ -135,6 +402,7 @@ for ($index = 0; $index < 32; $index++) {
     $settings[$index] = htmlentities($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 $encodedSettings = array_map('base64_encode', $settings);
+elodie_cms_save_menu_items($menuItems);
 elodie_cms_write_encoded_configuration($encodedSettings);
 $_SESSION['_login'] = html_entity_decode($settings[6], ENT_QUOTES | ENT_HTML5, 'UTF-8');
 $_SESSION['_pass'] = $settings[7];
@@ -163,7 +431,6 @@ echo'<div>
 <table style="margin:auto;padding-right:60px;">
 <tr><td style="padding-left:10px;padding-top:10px;">'.General.'</td><td style="padding-left:20px;padding-top:10px;">'.Generala.'</td> </tr>
 <tr><td style="padding-left:10px;padding-top:10px;">'.Profil.'</td><td style="padding-left:20px;padding-top:10px;">'.Profila.'</td> </tr>
-<tr><td style="padding-left:10px;padding-top:10px;">'.Theme.'</td><td style="padding-left:20px;padding-top:10px;">'.Themea.'</td> </tr>
 <tr><td style="padding-left:10px;padding-top:10px;">'.Menu.'</td><td style="padding-left:20px;padding-top:10px;">'.Menua.'</td> </tr>
 </table>
 </div>
@@ -171,7 +438,6 @@ echo'<div>
 <h2 class="settings-title">'.General.'</h2>
 <table style="margin:auto;padding-right:60px;">
 <tr>
-<td class="titre"></br>'.Titre.'  &nbsp;</td><td></br><input type="text" name="0" value="'.base64_decode($tableau[0]).'" placeholder="'.Titreb.'" STYLE="width:170px;" /></td>
 <td class="titre" style="padding-left:20px;" ></br>'.Langue.'  &nbsp;</td><td></br><SELECT value="'.base64_decode($tableau[1]).'" name="1" STYLE="width:180px;">';
 
 $languages = [
@@ -676,15 +942,12 @@ echo'
 </select>
 </td></tr><tr>
 <td class="profil"></br>'.Photo.'  &nbsp;</td><td></br><input type="text" name="15" value="'.base64_decode($tableau[15]).'" placeholder="'.Photoa.'" STYLE="width:170px;" /></td>
-<td class="profil" style="padding-left:20px;"></br>'.Twitter.'  &nbsp;</td><td></br><input type="text" name="16" value="'.base64_decode($tableau[16]).'" placeholder="'.Twittera.'" STYLE="width:170px;" /></td>
 </tr>
 <tr>
 <td class="profil"></br>'.Activite.'</td><td></br><input type="text" name="19" value="'.base64_decode($tableau[19]).'" placeholder="'.Activitea.'" STYLE="width:170px;" /></td>
-<td class="profil" style="padding-left:20px;"></br>'.Facebook.'  &nbsp;</td><td></br><input type="text" name="17" value="'.base64_decode($tableau[17]).'" placeholder="'.Facebooka.'" STYLE="width:170px;" /></td>
 </tr>
 <tr>
 <td class="profil"></br>'.Biographie.'</td><td></br><input type="text" name="20" value="'.base64_decode($tableau[20]).'" placeholder="'.Biographiea.'" STYLE="width:170px;" /></td>
-<td class="profil" style="padding-left:20px;"></br>'.Googleplus.'  &nbsp;</td><td></br><input type="text" name="18" value="'.base64_decode($tableau[18]).'" placeholder="'.Googleplusa.'" STYLE="width:170px;" /></td>
 </tr>
 <tr>
 <td class="profil"></br>'.Loisirsa.'</td><td COLSPAN=3></br><input type="text" name="21" value="'.base64_decode($tableau[21]).'" placeholder="'.Loisirsaa.'" STYLE="width:450px;" /></td>
@@ -693,49 +956,14 @@ echo'
 </div>
 
 <div>
-<h2 class="settings-title">'.Theme.'</h2>
-<table style="margin:auto;padding-right:60px;">
-<tr>
-<td COLSPAN=4><center><br/><b>'.Banniere.'</b></center></td>
-</tr>
-
-<tr>
-<td class="titre"></br>'.Lienc.' &nbsp;</td><td></br><input type="text" name="26" value="'.base64_decode($tableau[26]).'" placeholder="'.LienBanniere.'" STYLE="width:170px;" /></td>
-</tr><tr>
-<td class="profil"></br>'.Titrec.' &nbsp;</td><td></br><input type="text" name="27" value="'.base64_decode($tableau[27]).'" placeholder="'.TitreBanniere.'" STYLE="width:170px;" /></td>
-</tr>
-
-<tr>
-<td COLSPAN=4><center><br/><b>'.elodie_cms_escape(elodie_cms_ui('background_favicon')).'</b></center></td>
-</tr>
-
-<tr>
-<td class="titre"></br>'.elodie_cms_escape(elodie_cms_ui('background')).' &nbsp;</td><td></br><input type="text" name="30" value="'.base64_decode($tableau[30]).'" placeholder="'.LienBackground.'" STYLE="width:170px;" /></td>
-</tr><tr>
-<td class="profil"></br>'.elodie_cms_escape(elodie_cms_ui('favicon')).' &nbsp;</td><td></br><input type="text" name="31" value="'.base64_decode($tableau[31]).'" placeholder="'.LienFavicon.'" STYLE="width:170px;" /></td>
-</tr>
-</table>
-</div>
-  
-<div>
 <h2 class="settings-title">'.Menu.'</h2>
-<table style="margin:auto;padding-right:60px;">
-<tr>
-<td COLSPAN=4><center><br/><b>'.Menu.'</b></center></td>
-</tr>
-
-<tr>
-<td class="titre"></br>'.Titrec.' A  &nbsp;</td><td></br><input type="text" name="22" value="'.base64_decode($tableau[22]).'" placeholder="'.Titred.' A" STYLE="width:170px;" /></td>
-</tr><tr>
-<td class="profil"></br>'.Lienc.' A  &nbsp;</td><td></br><input type="text" name="23" value="'.base64_decode($tableau[23]).'" placeholder="'.Liend.' A" STYLE="width:170px;" /></td>
-</tr>
-
-<tr>
-<td class="titre"></br>'.Titrec.' B  &nbsp;</td><td></br><input type="text" name="24" value="'.base64_decode($tableau[24]).'" placeholder="'.Titred.' B" STYLE="width:170px;" /></td>
-</tr><tr>
-<td class="profil"></br>'.Lienc.' B  &nbsp;</td><td></br><input type="text" name="25" value="'.base64_decode($tableau[25]).'" placeholder="'.Liend.' B" STYLE="width:170px;" /></td>
-</tr>
-</table>
+';
+elodie_cms_render_menu_editor(
+    elodie_cms_read_menu_items(),
+    elodie_cms_read_news(__DIR__ . '/../news.php'),
+    elodie_cms_read_pages()
+);
+echo '
 </div>
 </div>
 </div>
@@ -948,23 +1176,19 @@ $fichier='configuration.txt';
 $tableau=array();
 $tableau=lire_array($fichier);
 
-if(isset($_POST['titre']) && isset($_POST['contenu']) && isset($_POST['chapo']) && isset($_POST['jour']) && isset($_POST['mois']) && isset($_POST['annee'])) {
+if(isset($_POST['titre']) && isset($_POST['contenu']) && isset($_POST['chapo']) && isset($_POST['date'])) {
      //On d&eacute;finit les variables
 $titre = elodie_cms_post_string('titre');
 $contenu = elodie_cms_post_string('contenu');
 
-     $chapo = elodie_cms_post_string('chapo');
-     $jour = elodie_cms_post_string('jour');
-     $mois = elodie_cms_post_string('mois');
-     $annee = elodie_cms_post_string('annee');
-	 $note = elodie_cms_post_string('note');
-     $format = $_POST['format'] ?? 'visual';
-     if (!is_string($format) || !in_array($format, ['visual', 'markdown', 'bbcode'], true)) {
-         throw new InvalidArgumentException('Le format de l’article est invalide.');
-     }
-     if (!elodie_cms_valid_article_date($annee, $mois, $jour)
-         || !in_array($note, ['Off', '0', '1', '2', '3', '4', '5'], true)) {
-         throw new InvalidArgumentException('La date ou la note de l’article est invalide.');
+$chapo = elodie_cms_post_string('chapo');
+$dateParts = elodie_cms_article_date_parts(elodie_cms_post_string('date'));
+$format = $_POST['format'] ?? 'visual';
+if (!is_string($format) || !in_array($format, ['visual', 'markdown', 'bbcode'], true)) {
+    throw new InvalidArgumentException('Le format de l’article est invalide.');
+}
+if ($dateParts === null) {
+    throw new InvalidArgumentException('La date de l’article est invalide.');
      }
      if ($titre === '') {
          throw new InvalidArgumentException('Le titre de l’article est obligatoire.');
@@ -976,7 +1200,7 @@ $contenu = elodie_cms_post_string('contenu');
      }
 	//On r&eacute;cup&egrave;re les donn&eacute;es d&eacutejà existantes
 	$news = elodie_cms_read_news(__DIR__ . '/../news.php');
-	$news[] = array('titre' => $titre, 'jour' => $jour, 'mois' => $mois, 'annee' => $annee,'contenu' => $contenu, 'chapo' => $chapo, 'note' => $note, 'format' => $format);
+	$news[] = array('titre' => $titre, 'jour' => $dateParts['day'], 'mois' => $dateParts['month'], 'annee' => $dateParts['year'],'contenu' => $contenu, 'chapo' => $chapo, 'note' => 'Off', 'format' => $format);
 	elodie_cms_write_news(__DIR__ . '/../news.php', $news);
 	
       echo '<p class="admin-notice" role="status">'.NewsAdd.'</p>';
@@ -988,47 +1212,15 @@ else {
 <p><strong>'.Auteur.' :</strong> '.elodie_cms_escape_legacy_text(base64_decode($tableau[2] ?? '', true) ?: '').'</p>
 <label for="titre">'.Titre.' : </label> <input type="text" required name="titre" id="titre" placeholder="'.Articla.'" />
 
-<label for="jour">'.Jour.'</label> : <SELECT name="jour" id="jour" STYLE="width:70px;">';
-
-$days = array('01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','31');  
-
-foreach ($days as $d) { 
-echo'<OPTION>'.$d.'</OPTION>';
- } 
-
-echo'</SELECT>
--
-<label for="mois">'.Mois.'</label> : <SELECT name="mois" id="mois" STYLE="width:70px;">';
-
-$month = array('01','02','03','04','05','06','07','08','09','10','11','12');  
-
-foreach ($month as $m) { 
-echo'<OPTION>'.$m.'</OPTION>';
- } 
- 
-echo'</SELECT>
--
-<label for="annee">'.Annee.'</label> : <SELECT name="annee" id="annee" STYLE="width:70px;">
-<OPTION>'.(date('Y')+0).'</OPTION>
-<OPTION>'.(date('Y')-1).'</OPTION>
-<OPTION>'.(date('Y')-2).'</OPTION>
-<OPTION>'.(date('Y')-3).'</OPTION>
-<OPTION>'.(date('Y')-4).'</OPTION>
-</SELECT>
+<label for="date">'.Date.'</label>
+<input type="date" required name="date" id="date" class="article-date" value="'.date('Y-m-d').'" />
 
 <br /><br /><label for="chapo"> '.Chapo.' : </label><input type="text" name="chapo" id="chapo" placeholder="'.Articlb.'" style="width: 82%;"/><br />
 <p class="article-editor-help">'.elodie_cms_escape(elodie_cms_ui('summary_help')).'</p>';
 
 elodie_cms_article_editor('', 'visual');
 
-echo'
-<br/><label for="note">'.Note.'</label> : <SELECT name="note" id="note" STYLE="width:70px;">';
-
-$notes = array( 'Off','1','2','3','4','5');
-
-foreach ($notes as $notesA) { echo'<option>'.$notesA.'</option>'; };
-
-echo'</SELECT>&nbsp; &nbsp;<b>'.Nota.'</b> .<br/><br/><center><input type="submit" value="'.Ok.'" /></center></form>';
+echo'<br/><br/><input type="submit" value="'.Ok.'" /></form>';
 }
 }
 
@@ -1062,25 +1254,18 @@ if (!is_string($format) || !in_array($format, ['visual', 'markdown', 'bbcode'], 
 }
 $news[$newsAmodifier]['format'] = $format;
 $news[$newsAmodifier]['titre'] = elodie_cms_post_string('titre');
-$news[$newsAmodifier]['jour'] = elodie_cms_post_string('jour');
-$news[$newsAmodifier]['mois'] = elodie_cms_post_string('mois');
-$news[$newsAmodifier]['annee'] = elodie_cms_post_string('annee');
-if (!elodie_cms_valid_article_date(
-    $news[$newsAmodifier]['annee'],
-    $news[$newsAmodifier]['mois'],
-    $news[$newsAmodifier]['jour']
-)) {
+$dateParts = elodie_cms_article_date_parts(elodie_cms_post_string('date'));
+if ($dateParts === null) {
     throw new InvalidArgumentException('La date de l’article est invalide.');
 }
+$news[$newsAmodifier]['jour'] = $dateParts['day'];
+$news[$newsAmodifier]['mois'] = $dateParts['month'];
+$news[$newsAmodifier]['annee'] = $dateParts['year'];
 $rawContent = elodie_cms_post_string('contenu');
 $news[$newsAmodifier]['contenu'] = $format === 'visual'
     ? elodie_cms_sanitize_article_html($rawContent)
     : $rawContent;
 	$news[$newsAmodifier]['chapo'] = elodie_cms_post_string('chapo');
-	$news[$newsAmodifier]['note'] = elodie_cms_post_string('note');
-    if (!in_array($news[$newsAmodifier]['note'], ['Off', '0', '1', '2', '3', '4', '5'], true)) {
-        throw new InvalidArgumentException('La note de l’article est invalide.');
-    }
     $renderedContent = elodie_cms_render_article_content($news[$newsAmodifier]['contenu'], $format);
     if ($news[$newsAmodifier]['titre'] === ''
         || (trim(strip_tags($renderedContent)) === '' && !str_contains($renderedContent, '<img'))) {
@@ -1094,45 +1279,24 @@ $news[$newsAmodifier]['contenu'] = $format === 'visual'
 
 echo'<form class="article-form" action="index.php?page=editer&amp;id='.(int) $newsAmodifier.'" method="post">'.elodie_cms_csrf_input().'
 	'.Auteur.' : <strong>'.elodie_cms_escape_legacy_text(base64_decode($tableau[2])).'</strong> - <label for="titre">'.Titre.' : </label> <input type="text" required name="titre" id="titre"  placeholder="'.Articla.'" value="'.elodie_cms_escape_legacy_text($news[$newsAmodifier]['titre']).'" /> -
-<label for="jour">'.Jour.' : </label> <input type="text" name="jour" id="jour" value="'.elodie_cms_escape_legacy_text($news[$newsAmodifier]['jour']).'" STYLE="width:70px;" readonly="readonly"/ >
-- <label for="mois">'.Mois.' : </label> <input type="text" name="mois" id="mois" value="'.elodie_cms_escape_legacy_text($news[$newsAmodifier]['mois']).'" STYLE="width:70px;" readonly="readonly" />
-- <label for="annee">'.Annee.' : </label> <input type="text" name="annee" id="annee" value="'.elodie_cms_escape_legacy_text($news[$newsAmodifier]['annee']).'" STYLE="width:70px;" readonly="readonly" />
+';
+$existingDate = (string) $news[$newsAmodifier]['annee'] . '-'
+    . str_pad((string) $news[$newsAmodifier]['mois'], 2, '0', STR_PAD_LEFT) . '-'
+    . str_pad((string) $news[$newsAmodifier]['jour'], 2, '0', STR_PAD_LEFT);
+$dateParts = elodie_cms_article_date_parts($existingDate);
+if ($dateParts !== null) {
+    echo '<label for="date">'.Date.' : </label> <input type="date" required name="date" id="date" class="article-date" value="'
+        . elodie_cms_escape($existingDate) . '" />';
+} else {
+    echo '<label for="date">'.Date.' : </label> <input type="date" required name="date" id="date" class="article-date" />';
+}
+echo '
 <br /><br /><label for="chapo">'.Chapo.' : </label><input type="text" placeholder="'.Articlb.'" name="chapo" id="chapo" value="'.elodie_cms_escape_legacy_text($news[$newsAmodifier]['chapo']).'" style="width: 82%;"/><br />
 <p class="article-editor-help">'.elodie_cms_escape(elodie_cms_ui('summary_help')).'</p>';
 
 elodie_cms_article_editor($news[$newsAmodifier]['contenu'], $currentFormat);
 
-echo'
-	
-<br/><label for="note">'.Note.'</label> : <SELECT name="note" id="note" STYLE="width:70px;">';
-
-if ($news[$newsAmodifier]['note']=='Off') {$notesoff = 'selected="selected"';}
-elseif ($news[$newsAmodifier]['note']==1) {$notes1 = 'selected="selected"';}
-elseif ($news[$newsAmodifier]['note']==2) {$notes2 = 'selected="selected"';}
-elseif ($news[$newsAmodifier]['note']==3) {$notes3 = 'selected="selected"';}
-elseif ($news[$newsAmodifier]['note']==4) {$notes4 = 'selected="selected"';}
-elseif ($news[$newsAmodifier]['note']==5) {$notes5 = 'selected="selected"';}
-else {$notesoff = 'selected="selected"';}
-
-$notes = array(
-
-'Off' => $notesoff, 
-'1' => $notes1,
-'2' => $notes2,
-'3' => $notes3,
-'4' => $notes4,
-'5' => $notes5
-
-);
-
-foreach ($notes as $notesA => $notesB) { 
-echo'<option '.$notesB.'>'.$notesA.'</option>';
- };
-
-echo'</SELECT>&nbsp; &nbsp;<b>'.Nota.'</b> .<br/>
-		<br/>
-<center><input type="submit" value="'.Ok.'" /></center>
-	</form>';
+echo'<br/><br/><input type="submit" value="'.Ok.'" /></form>';
 	
 }
 }
@@ -1232,65 +1396,47 @@ if (!is_array($upload)
     exit('Envoi d’image invalide.');
 }
 
-$taille = filesize($upload['tmp_name']);
+if (!function_exists('imagecreatefromstring')
+    || !function_exists('imagejpeg')
+    || !function_exists('imagepng')
+    || !function_exists('imagegif')) {
+    http_response_code(503);
+    exit(elodie_cms_ui('image_processing_unavailable'));
+}
+
+$size = filesize($upload['tmp_name']);
 $imageInfo = getimagesize($upload['tmp_name']);
 $mimeType = (new finfo(FILEINFO_MIME_TYPE))->file($upload['tmp_name']);
-$extensionsByMime = [
-    'image/jpeg' => '.jpg',
-    'image/png' => '.png',
-    'image/gif' => '.gif',
-    'image/bmp' => '.bmp',
-];
-if ($taille === false || $taille === 0 || $taille > 1048576) {
+if ($size === false || $size === 0 || $size > 1048576) {
     http_response_code(400);
     exit(elodie_cms_escape(ImageGros));
 }
+$allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp'];
 if ($imageInfo === false
-    || !isset($extensionsByMime[$mimeType])
+    || !is_string($mimeType)
+    || !in_array($mimeType, $allowedMimeTypes, true)
     || $imageInfo['mime'] !== $mimeType
     || $imageInfo[0] > 10000
     || $imageInfo[1] > 10000
-    || $imageInfo[0] * $imageInfo[1] > 40000000) {
+    || $imageInfo[0] * $imageInfo[1] > 12000000) {
     http_response_code(400);
     exit(elodie_cms_escape(ImageUpload));
 }
 
-$dossier = '../images/';
-$fichier = basename(is_string($upload['name'] ?? null) ? $upload['name'] : 'image');
-$taille_maxi = 1048576;
-$extensions = array('.png', '.gif', '.jpg', '.bmp');
-$extension = $extensionsByMime[$mimeType];
-if(!in_array($extension, $extensions)) 
-{
-     echo '<meta http-equiv="Refresh" content="2; url=index.php?page=images" />';
-     $erreur = '<p class="admin-notice admin-notice-error" role="alert">'.ImageUpload.'</p>';
+$sanitizedImage = elodie_cms_reencode_uploaded_image($upload['tmp_name'], $mimeType);
+if ($sanitizedImage === null) {
+    http_response_code(400);
+    exit(elodie_cms_escape(elodie_cms_ui('image_rejected')));
 }
-if($taille>$taille_maxi)
-{
-     echo '<meta http-equiv="Refresh" content="2; url=index.php?page=images" />';
-     $erreur = '<p class="admin-notice admin-notice-error" role="alert">'.ImageGros.'</p>';
+
+$destination = __DIR__ . '/../images/' . bin2hex(random_bytes(16)) . '.' . $sanitizedImage['extension'];
+$saved = copy($sanitizedImage['path'], $destination);
+if (!unlink($sanitizedImage['path'])) {
+    throw new RuntimeException('Impossible de supprimer le fichier temporaire de l’image.');
 }
-if(!isset($erreur)) 
-{
-     $fichier = strtr($fichier, 
-          'ÀÁÂÃÄÅÇ&egrave;&eacute;Ê&euml;ÌÍÎ&iuml;ÒÓ&ocirc;ÕÖÙÚÛÜÝàáâãäåç&egrave;&eacute;ê&euml;ìíî&iuml;ðòó&ocirc;õöùúûüýÿ', 
-          'AAAAAACEEEEIIIIOOOOOUUUUYaaaaaaceeeeiiiioooooouuuuyy');
-     $fichier = preg_replace('/([^.a-z0-9]+)/i', '-', $fichier);
-     if(move_uploaded_file($upload['tmp_name'], $dossier . bin2hex(random_bytes(16)) . $extension))
-     {
-echo '<meta http-equiv="Refresh" content="2; url=index.php?page=images" />';
+if (!$saved) {
+    throw new RuntimeException('Impossible d’enregistrer l’image réencodée.');
+}
 echo '<p class="admin-notice" role="status">'.ImageSuccess.'</p>';
-     }
-     else 
-     {
-	  echo '<meta http-equiv="Refresh" content="2; url=index.php?page=images" />';
-          echo '<p class="admin-notice admin-notice-error" role="alert">'.ImageEchec.'</p>';
-     }
-}
-else
-{
-     echo '<meta http-equiv="Refresh" content="2; url=index.php?page=images" />';
-     echo $erreur;
-}
 }
 ?>

@@ -3,8 +3,10 @@ $navigationItems = [
     ['page' => '', 'label' => elodie_cms_ui('dashboard'), 'icon' => '⌂'],
     ['page' => 'liste', 'label' => Articles, 'icon' => '▤'],
     ['page' => 'ajouter', 'label' => elodie_cms_ui('write_article'), 'icon' => '+'],
+    ['page' => 'pages', 'label' => elodie_cms_ui('pages_title'), 'icon' => '▧'],
     ['page' => 'images', 'label' => elodie_cms_ui('media'), 'icon' => '▧'],
     ['page' => 'configuration', 'label' => Configuration, 'icon' => '⚙'],
+    ['page' => 'theme', 'label' => elodie_cms_ui('theme_title'), 'icon' => '◐'],
 ];
 ?>
 <aside class="admin-sidebar" aria-label="<?= elodie_cms_escape(elodie_cms_ui('admin_navigation')) ?>">
