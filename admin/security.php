@@ -5,12 +5,12 @@ require_once __DIR__ . '/../lang/interface.php';
 
 function elodie_cms_version(): string
 {
-    return '1.01 Cat';
+    return '1.02 Meow';
 }
 
 function elodie_cms_release_version(): string
 {
-    return '1.01';
+    return '1.02';
 }
 
 function elodie_cms_start_session(): void
