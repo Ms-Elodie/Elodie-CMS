@@ -9,7 +9,7 @@ $navigationItems = [
     ['page' => 'theme', 'label' => elodie_cms_ui('theme_title'), 'icon' => '◐'],
 ];
 ?>
-<aside class="admin-sidebar" aria-label="<?= elodie_cms_escape(elodie_cms_ui('admin_navigation')) ?>">
+<aside class="admin-sidebar" id="admin-sidebar" aria-label="<?= elodie_cms_escape(elodie_cms_ui('admin_navigation')) ?>">
     <nav class="admin-nav">
         <?php foreach ($navigationItems as $item): ?>
             <?php $href = 'index.php' . ($item['page'] === '' ? '' : '?page=' . rawurlencode($item['page'])); ?>

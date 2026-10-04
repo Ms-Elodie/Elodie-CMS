@@ -131,6 +131,10 @@ iframe {
     gap: .8rem;
 }
 
+.admin-menu-toggle {
+    display: none;
+}
+
 .admin-topbar-tools a {
     color: #fff;
     font-size: .9rem;
@@ -809,30 +813,53 @@ iframe {
 }
 
 @media (max-width: 800px) {
+    .admin-topbar {
+        flex-wrap: wrap;
+    }
+
+    .admin-menu-ready .admin-menu-toggle {
+        display: inline-flex;
+        min-height: 2.6rem;
+        align-items: center;
+        gap: .4rem;
+        padding: .35rem .65rem;
+        border-color: #587286;
+        background: transparent;
+        color: #fff;
+    }
+
+    .admin-menu-ready .admin-menu-toggle:hover {
+        border-color: #8da7b9;
+        background: #244e6b;
+        color: #fff;
+    }
+
     .admin-layout {
         grid-template-columns: minmax(0, 1fr);
     }
 
     .admin-sidebar {
-        position: sticky;
-        z-index: 8;
-        top: 3.8rem;
-        padding: .45rem .65rem;
+        padding: .5rem .65rem;
         border-right: 0;
         border-bottom: 1px solid var(--admin-border);
     }
 
+    .admin-menu-ready .admin-sidebar {
+        display: none;
+    }
+
+    .admin-menu-ready .admin-sidebar.is-open {
+        display: block;
+    }
+
     .admin-nav {
-        display: flex;
-        gap: .35rem;
-        overflow-x: auto;
-        overscroll-behavior-x: contain;
-        -webkit-overflow-scrolling: touch;
+        position: static;
+        display: grid;
+        gap: .15rem;
     }
 
     .admin-nav-link {
-        min-height: 2.7rem;
-        flex: 0 0 auto;
+        min-height: 2.8rem;
         padding: .4rem .65rem;
         white-space: nowrap;
     }
@@ -842,10 +869,9 @@ iframe {
     }
 
     .admin-nav-divider {
-        width: 1px;
-        height: 1.8rem;
-        flex: 0 0 1px;
-        margin: .35rem .2rem;
+        width: auto;
+        height: 1px;
+        margin: .35rem .7rem;
     }
 }
 
@@ -875,6 +901,7 @@ iframe {
     }
 
     .admin-topbar-tools {
+        flex-wrap: wrap;
         gap: .55rem;
     }
 
@@ -883,8 +910,12 @@ iframe {
         font-size: .8rem;
     }
 
+    .admin-menu-toggle {
+        font-size: .85rem;
+    }
+
     .admin-sidebar {
-        top: 0;
+        padding: .4rem .5rem;
     }
 
     .admin-nav-link {

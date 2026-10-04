@@ -22,7 +22,8 @@ $elodieCmsInterfaceTranslations = [
         'menu_down' => 'Descendre', 'menu_label' => 'Libellé', 'menu_type' => 'Type de destination',
         'menu_link' => 'Lien', 'menu_article' => 'Article', 'menu_choose_article' => 'Choisir un article',
         'menu_page' => 'Page', 'menu_choose_page' => 'Choisir une page',
-    'admin_navigation' => 'Navigation de l’administration', 'main_navigation' => 'Navigation principale',
+    'admin_navigation' => 'Navigation de l’administration', 'mobile_menu' => 'Menu',
+    'main_navigation' => 'Navigation principale',
     'link_prompt' => 'Adresse du lien (https://, http://, / ou mailto:) :',
     'link_not_allowed' => 'Cette adresse de lien n’est pas autorisée.',
     'empty_article' => 'Ajoutez du texte ou une image avant d’enregistrer.',
@@ -137,6 +138,7 @@ $elodieCmsInterfaceTranslations = [
     ],
     'en' => [
         'dashboard' => 'Dashboard', 'administration' => 'Administration', 'admin_navigation' => 'Administration navigation',
+        'mobile_menu' => 'Menu',
         'theme_title' => 'Appearance', 'theme_help' => 'Customize the site title, description, colors, and images.',
         'theme_site_title' => 'Site title', 'theme_description' => 'Site description',
         'theme_logo' => 'Logo or banner URL', 'theme_logo_alt' => 'Logo alternative text',
@@ -251,6 +253,7 @@ $elodieCmsInterfaceTranslations = [
     ],
     'es' => [
         'dashboard' => 'Escritorio', 'administration' => 'Administración', 'admin_navigation' => 'Navegación de administración',
+        'mobile_menu' => 'Menú',
         'theme_title' => 'Apariencia', 'theme_help' => 'Personaliza el título, la descripción, los colores y las imágenes del sitio.',
         'theme_site_title' => 'Título del sitio', 'theme_description' => 'Descripción del sitio',
         'theme_logo' => 'URL del logotipo o del banner', 'theme_logo_alt' => 'Texto alternativo del logotipo',
@@ -368,6 +371,7 @@ $elodieCmsInterfaceTranslations = [
     ],
     'nl' => [
         'dashboard' => 'Dashboard', 'administration' => 'Beheer', 'admin_navigation' => 'Beheernavigatie',
+        'mobile_menu' => 'Menu',
         'theme_title' => 'Weergave', 'theme_help' => 'Pas de sitetitel, beschrijving, kleuren en afbeeldingen aan.',
         'theme_site_title' => 'Sitetitel', 'theme_description' => 'Sitebeschrijving',
         'theme_logo' => 'Logo- of banner-URL', 'theme_logo_alt' => 'Alternatieve tekst van het logo',
@@ -482,6 +486,7 @@ $elodieCmsInterfaceTranslations = [
     ],
     'de' => [
         'dashboard' => 'Dashboard', 'administration' => 'Verwaltung', 'admin_navigation' => 'Verwaltungsnavigation',
+        'mobile_menu' => 'Menü',
         'theme_title' => 'Design', 'theme_help' => 'Passen Sie Titel, Beschreibung, Farben und Bilder der Website an.',
         'theme_site_title' => 'Website-Titel', 'theme_description' => 'Website-Beschreibung',
         'theme_logo' => 'Logo- oder Banner-URL', 'theme_logo_alt' => 'Alternativtext des Logos',
@@ -597,6 +602,7 @@ $elodieCmsInterfaceTranslations = [
     ],
     'it' => [
         'dashboard' => 'Bacheca', 'administration' => 'Amministrazione', 'admin_navigation' => 'Navigazione amministrazione',
+        'mobile_menu' => 'Menu',
         'theme_title' => 'Aspetto', 'theme_help' => 'Personalizza il titolo, la descrizione, i colori e le immagini del sito.',
         'theme_site_title' => 'Titolo del sito', 'theme_description' => 'Descrizione del sito',
         'theme_logo' => 'URL del logo o del banner', 'theme_logo_alt' => 'Testo alternativo del logo',
@@ -712,6 +718,7 @@ $elodieCmsInterfaceTranslations = [
     ],
     'pt' => [
         'dashboard' => 'Painel', 'administration' => 'Administração', 'admin_navigation' => 'Navegação da administração',
+        'mobile_menu' => 'Menu',
         'theme_title' => 'Aparência', 'theme_help' => 'Personalize o título, a descrição, as cores e as imagens do site.',
         'theme_site_title' => 'Título do site', 'theme_description' => 'Descrição do site',
         'theme_logo' => 'URL do logótipo ou banner', 'theme_logo_alt' => 'Texto alternativo do logótipo',
