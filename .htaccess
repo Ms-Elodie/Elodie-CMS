@@ -1,0 +1,15 @@
+Options -Indexes
+DirectoryIndex index.php
+
+<Files "news.php">
+    Require all denied
+</Files>
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+RewriteEngine On
+RewriteRule ^\.git(?:/|$) - [F,L]
+RewriteRule ^article-([0-9]+)\.php$ index2.php?module=articles&page=$1 [L,QSA]
+RewriteRule ^([0-9]+)-([a-z0-9\-]+)\.php$ index2.php?module=articles&page=$1 [L,QSA]
+RewriteRule ^feed$ rss.php [L]

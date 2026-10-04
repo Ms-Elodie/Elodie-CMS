@@ -1,25 +1,10 @@
 <?php
-session_start();
 
-/******************************************************
-
-# *** LICENCE ***
-# Ce fichier fait partie de UAG CMS
-# http://julien-et-nel.be/UAG/
-#
-# 2012 Jonathan Julien Soulignac <julien-soulignac@live.fr>
-#
-# UAG CMS est un script libre, vous pouvez le redistribuer sous les termes de la 
-# License Libre de Diffusion Gratuite Paternité V1 : http://julien-et-nel.be/LLDGP1/ .
-#
-# En outre, tous les distributeurs de versions non officielles DOIT avertir 
-# l'utilisateur final de celui-ci, par tout moyen visible avant le téléchargement.
-# *** LICENCE ***
-
-******************************************************/
+require_once __DIR__ . '/security.php';
+uag_start_session();
 
 // on inclu la page de config
-include("config.php");
+require_once __DIR__ . '/config.php';
 
 if(!isset($_SESSION['_login']) || !isset($_SESSION['_pass']  ))
 {
@@ -31,7 +16,10 @@ if(!isset($_SESSION['_login']) || !isset($_SESSION['_pass']  ))
 else
 {
      // les sessions existe ... reste à savoir si les informations sont correct ou non
-     if(($_admin_login != $_SESSION['_login']) || ($_SESSION['token'] == $_POST['token']) ||($_SESSION['_pass'] != $_admin_pass))
+     if (!is_string($_SESSION['_login'])
+         || !is_string($_SESSION['_pass'])
+         || !hash_equals($_admin_login, $_SESSION['_login'])
+         || !hash_equals($_admin_pass, $_SESSION['_pass']))
      {
          include("connexion.php");
          exit();

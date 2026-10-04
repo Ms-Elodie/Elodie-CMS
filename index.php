@@ -1,60 +1,27 @@
 <?php
-/******************************************************
 
-# *** LICENCE ***
-# Ce fichier fait partie de UAG CMS
-# http://julien-et-nel.be/UAG/
-#
-# 2012 Jonathan Julien Soulignac <julien-soulignac@live.fr>
-#
-# UAG CMS est un script libre, vous pouvez le redistribuer sous les termes de la 
-# License Libre de Diffusion Gratuite Paternité V1 : http://julien-et-nel.be/LLDGP1/ .
-#
-# En outre, tous les distributeurs de versions non officielles DOIT avertir 
-# l'utilisateur final de celui-ci, par tout moyen visible avant le téléchargement.
-# *** LICENCE ***
-
-******************************************************/
-
+require_once __DIR__ . '/admin/security.php';
 function lire_array($fichier)
 {
-if (file_exists($fichier))
-{
-$contents = file_get_contents($fichier);
-$tableau=array();
-$tableau=explode("-",$contents);// transformation des données en array
-return $tableau;
+return uag_read_encoded_configuration();
 }
-else echo 'Fichier  '.$fichier.' non trouvé (lecture)';
-}
-/******************************************/
-function ajout($fichier,$ajout)
-{
-			$fichier;
-	// Ouvrir le fichier en écriture
-	if (file_exists($fichier)) { 
- 		 $inF = fopen($fichier,"a"); //Mode Append	=> ajout	 
- 	}else{
- 		 $inF = fopen($fichier,"w"); // Le créer si introuvable
- 	}
-  fputs($inF,$ajout."-");
-  fclose($inF);
-}
-
 $fichier='admin/configuration.txt'; 
 $tableau=array();
 $tableau=lire_array($fichier);
 error_reporting(0);
 
-$filename = 'admin/configuration.txt';
-
-if (filesize($filename) > 0) {} 
-
-else { header('Location: install.php'); } 
+if (!uag_is_installed()) {
+    header('Location: install.php');
+    exit();
+}
 
 error_reporting(0); 
 
-include('lang/'.base64_decode($tableau[1]).'-lang.php');
+$language = base64_decode($tableau[1] ?? '', true);
+if (!in_array($language, ['fr', 'en', 'es', 'nl'], true)) {
+    $language = 'fr';
+}
+include __DIR__ . '/lang/' . $language . '-lang.php';
 
 require 'admin/fonctions.php';
 
@@ -64,10 +31,10 @@ echo'
 <head>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <meta http-equiv="x-ua-compatible" content="ie=edge" />
-<title>UAG CMS</title>
+<title>Elodie CMS</title>
 <meta name="Description" content="" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="stylesheet" href="admin/defaut.css" />
 <link rel="stylesheet" href="admin/defaut2.css" />
 <link rel="shortcut icon" type="image/x-icon" href="'.base64_decode($tableau[5]).'/Favicon.ico" sizes="16x16" />
@@ -334,7 +301,7 @@ include('admin/chat.php');
 echo'</div>';
 
 echo'</div>
-<div id="header">UAG CMS
+<div id="header">Elodie CMS
 ';
 
 echo'</div><ul id="gallery" class="gallery ui-helper-reset ui-helper-clearfix">';
@@ -349,9 +316,8 @@ else { echo'<li id="draggable2" class="ui-widget-content ui-corner-tr" style="te
 
 }
 
-echo' <div id="dialog2" title="LLDGP1"><p>'; LLDGP1(); echo'</p></div>'; 
-
-echo'<li id="draggable3" class="ui-widget-content ui-corner-tr" style="text-align:center;background:none;border:none;padding-left:20px !important; padding-right:10px !important;margin-left:35px;float:left;list-style-type:none;margin-top:25px;"><div id="opener2"><img src="admin/images/info.png"><h5 class="ui-widget-header" style="background:none;margin:0px;">LLDGP1</h5></li></div>';
+echo '<div id="dialog2" title="À propos d’Elodie CMS"><p>Elodie CMS est un projet de partage dont je reste l’autrice originale. Sa modernisation a bénéficié de l’aide de GitHub Copilot, utilisé comme outil complémentaire de développement.</p><p>Je suis également la créatrice de BlockColor pour Luanti et j’utilise aussi des outils d’intelligence artificielle pour créer de la musique. Mon approche de l’IA est nuancée : ni pour, ni contre. Ma santé et mon énergie sont parfois limitées, et je reconnais que l’IA peut aider comme outil complémentaire, sans remplacer la personne qui crée.</p></div>';
+echo '<li id="draggable3" class="ui-widget-content ui-corner-tr" style="text-align:center;background:none;border:none;padding:10px;margin:10px;float:left;list-style-type:none;"><div id="opener2"><img src="admin/images/info.png" alt=""><h5 class="ui-widget-header" style="background:none;margin:0px;">À propos</h5></div></li>';
 
 if (base64_decode($tableau[22])=='') {}
 
@@ -379,22 +345,17 @@ echo'<div id="dialog5" title="RSS"><p>'; RSS(); echo'</p></div>';
 
 echo'<li id="draggable6" class="ui-widget-content ui-corner-tr" style="text-align:center;background:none;border:none;padding-left:20px !important; padding-right:10px !important;margin-left:35px;float:left;list-style-type:none;margin-top:25px;"><div id="opener5"><img src="admin/images/rss.png"><h5 class="ui-widget-header" style="background:none;margin:0px;">RSS</h5></li></div>';
 
-echo'<div id="dialog6" title="UAG"><p>'; UAG(); echo'</p></div>'; 
-
-echo'<li id="draggable7" class="ui-widget-content ui-corner-tr" style="text-align:center;background:none;border:none;padding-left:20px !important; padding-right:10px !important;margin-left:35px;float:left;list-style-type:none;margin-top:25px;"><div id="opener6"><img src="admin/images/pays.png"><h5 class="ui-widget-header" style="background:none;margin:0px;">UAG</h5></li></div>';
+echo '<div id="dialog6" title="Licence MIT"><p>Elodie CMS est distribué sous licence MIT. <a href="LICENSE" target="_blank" rel="noopener noreferrer">Lire le texte de la licence</a>.</p></div>';
+echo '<li id="draggable7" class="ui-widget-content ui-corner-tr" style="text-align:center;background:none;border:none;padding:10px;margin:10px;float:left;list-style-type:none;"><div id="opener6"><img src="admin/images/info.png" alt=""><h5 class="ui-widget-header" style="background:none;margin:0px;">Licence MIT</h5></div></li>';
 
 echo'</ul><div id="contenu2">';
 
 /* Les différentes Pages de l'administration */
 
-switch ($_GET['page'])
+switch (is_string($_GET['page'] ?? null) ? $_GET['page'] : '')
 {
 
-case 'LLDGP1': echo LLDGP1;  break;
-
 case 'RSS': echo RSS;  break;
-
-case 'UAG': echo UAG;  break;
 
 case 'lien1': echo''.base64_decode($tableau[22]).'';  break;
 
@@ -404,10 +365,8 @@ default :  ;
 
 } 
 
-switch ($_GET['page'])
+switch (is_string($_GET['page'] ?? null) ? $_GET['page'] : '')
 {
-
-case 'LLDGP1': LLDGP1(); break;
 
 case 'lien1': lien1();  break;
 
@@ -415,13 +374,11 @@ case 'lien2': lien2();  break;
 
 case 'RSS': RSS();  break;
 
-case 'UAG': UAG();  break;
-
 default : ;
 
 }
 
-switch ($_GET['page'])
+switch (is_string($_GET['page'] ?? null) ? $_GET['page'] : '')
 {
 default :  echo'<div id="dialog_window_minimized_container"></div>';
 include('admin/includes/bas.php');

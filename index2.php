@@ -1,80 +1,74 @@
 <?php
 
-/******************************************************
-
-# *** LICENCE ***
-# Ce fichier fait partie de UAG CMS
-# http://julien-et-nel.be/UAG/
-#
-# 2012 Jonathan Julien Soulignac <julien-soulignac@live.fr>
-#
-# UAG CMS est un script libre, vous pouvez le redistribuer sous les termes de la 
-# License Libre de Diffusion Gratuite Paternité V1 : http://julien-et-nel.be/LLDGP1/ .
-#
-# En outre, tous les distributeurs de versions non officielles DOIT avertir 
-# l'utilisateur final de celui-ci, par tout moyen visible avant le téléchargement.
-# *** LICENCE ***
-
-******************************************************/
+require_once __DIR__ . '/admin/security.php';
 require 'admin/fonctions.php'; 
 
 function lire_array($fichier)
 {
-if (file_exists($fichier))
-{
-$contents = file_get_contents($fichier);
-$tableau=array();
-$tableau=explode("-",$contents);// transformation des données en array
-return $tableau;
+return uag_read_encoded_configuration();
 }
-else echo 'Fichier  '.$fichier.' non trouvé (lecture)';
-}
-/******************************************/
-function ajout($fichier,$ajout)
-{
-			$fichier;
-	// Ouvrir le fichier en écriture
-	if (file_exists($fichier)) { 
- 		 $inF = fopen($fichier,"a"); //Mode Append	=> ajout	 
- 	}else{
- 		 $inF = fopen($fichier,"w"); // Le créer si introuvable
- 	}
-  fputs($inF,$ajout."-");
-  fclose($inF);
-}
-
 $fichier='admin/configuration.txt'; 
 $tableau=array();
 $tableau=lire_array($fichier);
 error_reporting(0);
 
-if (filesize($fichier) > 0) {
-
- unlink('install.php'); 
-
-} 
-
-else { header('Location: install.php'); } 
+if (!uag_is_installed()) {
+    header('Location: install.php');
+    exit();
+}
 
 ob_start('ob_gzhandler'); register_shutdown_function('ob_end_flush');
 
-$allnews = unserialize(base64_decode(file_get_contents('news.php')));
+$allnews = uag_read_news(__DIR__ . '/news.php');
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['comment_submit'] ?? '') === '1') {
+    if (!uag_comments_enabled()) {
+        http_response_code(404);
+        exit('Les commentaires sont désactivés.');
+    }
+    uag_require_valid_csrf_token();
+    $articleId = public_article_id($allnews);
+    if ($articleId === null || !array_key_exists($articleId, $allnews)) {
+        http_response_code(404);
+        exit('Article introuvable.');
+    }
+    $author = uag_post_string('author');
+    $body = trim(uag_post_string('body'));
+    if ($author === '' || strlen($author) > 120 || preg_match('/[\x00-\x1F\x7F]/', $author)
+        || $body === '' || strlen($body) > 5000
+        || preg_match('//u', $author) !== 1 || preg_match('//u', $body) !== 1
+        || preg_match('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', $body)) {
+        http_response_code(400);
+        exit('Le nom ou le commentaire est invalide (120 et 5 000 octets maximum).');
+    }
+    $remoteAddress = is_string($_SERVER['REMOTE_ADDR'] ?? null) ? $_SERVER['REMOTE_ADDR'] : '';
+    if (!uag_add_comment($articleId, $author, $body, $remoteAddress)) {
+        http_response_code(429);
+        exit('Limite de commentaires atteinte. Réessayez dans quelques minutes.');
+    }
+    header('Location: index2.php?module=articles&page=' . max(1, (int) ($_GET['page'] ?? 1)) . '&comment=sent');
+    exit();
+}
 
 $nb_messagetotal = count($allnews);
 
 $nbPages = ceil($nb_messagetotal / 1);
 
-if(isset($_GET['page']) && (intval($_GET['page']) <= $nbPages)) {
+$requestedPage = $_GET['page'] ?? null;
+$page = is_string($requestedPage) && ctype_digit($requestedPage)
+    ? max(0, min($nbPages - 1, (int) $requestedPage - 1))
+    : 0;
+$liste_news = array_slice($allnews, $page, 1);
 
-$page = intval($_GET['page']) - 1; }
+$language = base64_decode($tableau[1] ?? '', true);
+if (!in_array($language, ['fr', 'en', 'es', 'nl'], true)) {
+    $language = 'fr';
+}
+include __DIR__ . '/lang/' . $language . '-lang.php';
 
-$liste_news = array_slice($allnews, $page, 1); 
+echo'<!DOCTYPE html><!-- Systeme de Pagination Par Qwerty : http://etudiant-libre.fr.nf/ --> <html lang="'.uag_escape($language).'"><head>';
 
-include('lang/'.base64_decode($tableau[1]).'-lang.php');
-
-echo'<!DOCTYPE html><!-- Systeme de Pagination Par Qwerty : http://etudiant-libre.fr.nf/ --> <html lang="'.base64_decode($tableau[1]).'"><head>';
-
-switch ($_GET['module'])
+switch (is_string($_GET['module'] ?? null) ? $_GET['module'] : '')
 {
 
 case 'articles': tarticles(); break;
@@ -87,22 +81,10 @@ default : tprofil();
 echo'
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<meta name="Generator" content="UAG CMS" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="Generator" content="Elodie CMS" />
 <link rel="alternate" type="application/rss+xml" title="flux rss" href="rss.php" />
 <link rel="stylesheet" type="text/css" href="'.base64_decode($tableau[5]).'/style.css" />';
-
-$connect3 = TRUE;                              
-$ip_internet3 = 'www.googleapis.com';          
-$port_internet3 = 80; 
-
-if (! $sock3 = @fsockopen($ip_internet3, $port_internet3, $num3, $error3, 5)) { echo '';}
-
-else { 
-
-echo'<link href="http://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet" type="text/css" />';
-
-};
 
 if (base64_decode($tableau[31])=='') {
 echo'<link rel="shortcut icon" type="image/x-icon" href="'.base64_decode($tableau[5]).'/Favicon.ico" sizes="16x16" />
@@ -131,10 +113,10 @@ min-height:0px !important;
 };
 </style>';
 
-switch ($_GET['module'])
+switch (is_string($_GET['module'] ?? null) ? $_GET['module'] : '')
 {
 
-case 'articles': articles(); disqus(); break;
+case 'articles': articles(); comments(); break;
 
 case 'erreurs': erreurs(); break;
 

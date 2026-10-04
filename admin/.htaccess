@@ -1,9 +1,3 @@
-#Protection 403 du fichier configuration
-<files config.php>
-	Order deny,allow
-	deny from all
-</files>
-<files configuration.txt>
-	Order deny,allow
-	deny from all
-</files>
+<FilesMatch "^(config\.php|configuration\.txt|security\.php)$">
+    Require all denied
+</FilesMatch>

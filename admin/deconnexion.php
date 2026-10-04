@@ -1,26 +1,26 @@
 <?php
-session_start();
 
-/******************************************************
+require_once __DIR__ . '/security.php';
+uag_start_session();
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    header('Allow: POST');
+    exit('Méthode non autorisée.');
+}
+uag_require_valid_csrf_token();
 
-# *** LICENCE ***
-# Ce fichier fait partie de UAG CMS
-# http://julien-et-nel.be/UAG/
-#
-# 2012 Jonathan Julien Soulignac <julien-soulignac@live.fr>
-#
-# UAG CMS est un script libre, vous pouvez le redistribuer sous les termes de la 
-# License Libre de Diffusion Gratuite Paternité V1 : http://julien-et-nel.be/LLDGP1/ .
-#
-# En outre, tous les distributeurs de versions non officielles DOIT avertir 
-# l'utilisateur final de celui-ci, par tout moyen visible avant le téléchargement.
-# *** LICENCE ***
-
-******************************************************/
-
-unset($_SESSION);
-unset($_COOKIE);
+$_SESSION = [];
+$cookie = session_get_cookie_params();
+setcookie(session_name(), '', [
+    'expires' => time() - 3600,
+    'path' => $cookie['path'],
+    'domain' => $cookie['domain'],
+    'secure' => $cookie['secure'],
+    'httponly' => $cookie['httponly'],
+    'samesite' => $cookie['samesite'] ?? 'Lax',
+]);
 session_destroy();
-header ('Location: ../index.php');
+header('Location: ../index.php');
+exit();
 
 ?>

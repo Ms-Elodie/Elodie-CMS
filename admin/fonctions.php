@@ -1,20 +1,5 @@
-<?php 
-/******************************************************
-
-# *** LICENCE ***
-# Ce fichier fait partie de UAG CMS
-# http://julien-et-nel.be/UAG/
-#
-# 2012 Jonathan Julien Soulignac <julien-soulignac@live.fr>
-#
-# UAG CMS est un script libre, vous pouvez le redistribuer sous les termes de la 
-# License Libre de Diffusion Gratuite Paternit&eacute; V1 : http://julien-et-nel.be/LLDGP1/ .
-#
-# En outre, tous les distributeurs de versions non officielles DOIT avertir 
-# l'utilisateur final de celui-ci, par tout moyen visible avant le t&eacute;l&eacute;chargement.
-# *** LICENCE ***
-
-******************************************************/
+<?php
+require_once __DIR__ . '/security.php';
 
 /* BLOG */
 
@@ -42,14 +27,6 @@ echo'<iframe src="'.base64_decode($tableau[25]).'" style="min-width:100%;min-hei
 
 }
 
-function LLDGP1()   {
-
-echo'<iframe src="http://julien-et-nel.be/LLDGP1/" style="min-width:100%;min-height:550px !important;background:black !important;background-image:none;"></iframe>
-
-<a href="http://julien-et-nel.be/LLDGP1/" target="cwindow"></a>';
-
-}
-
 function RSS()   {
 
 $fichier='admin/configuration.txt';
@@ -59,18 +36,6 @@ $tableau=lire_array($fichier);
 echo'<iframe src="'.base64_decode($tableau[5]).'/rss.php" style="min-width:100%;min-height:550px !important;background:black !important;background-image:none;"></iframe>
 
 <a href="'.base64_decode($tableau[5]).'/rss.php" target="cwindow"></a>';
-
-}
-
-function UAG()   {
-
-$fichier='admin/configuration.txt';
-$tableau=array();
-$tableau=lire_array($fichier);
-
-echo'<iframe src="http://julien-et-nel.be/UAG/" style="min-width:100%;min-height:550px !important;background:black !important;background-image:none;"></iframe>
-
-<a href="http://julien-et-nel.be/UAG/" target="cwindow"></a>';
 
 }
 
@@ -130,21 +95,22 @@ include ('admin/includes/config1.php');
 
 ob_start('ob_gzhandler'); register_shutdown_function('ob_end_flush');
 
-$allnews = unserialize(base64_decode(file_get_contents('news.php')));
+$allnews = uag_read_news(__DIR__ . '/../news.php');
 
 $nb_messagetotal = count($allnews);
 
 $nbPages = ceil($nb_messagetotal / 1);
 
-if(isset($_GET['page']) && (intval($_GET['page']) <= $nbPages)) {
+$requestedPage = $_GET['page'] ?? null;
+$page = is_string($requestedPage) && ctype_digit($requestedPage)
+    ? max(0, min($nbPages - 1, (int) $requestedPage - 1))
+    : 0;
 
-$page = intval($_GET['page']) - 1; }
-
-$liste_news = array_slice($allnews, $page, 1); 
+$liste_news = array_slice($allnews, max(0, $page ?? 0), 1);
 
 if(!empty($liste_news)) { foreach($liste_news as $id => $news) {
 
-echo'<title>'.base64_decode($tableau[0]).' - '.$news['titre'].'</title><meta name="Description" content="'.$news['chapo'].'">';	} }
+echo'<title>'.uag_escape_legacy_text(base64_decode($tableau[0])).' - '.uag_escape_legacy_text($news['titre']).'</title><meta name="Description" content="'.uag_escape_legacy_text($news['chapo']).'">';	} }
 
 else { echo'<title>'.base64_decode($tableau[0]).' - '.Informations.'</title><meta name="Description" content="'.PasdeNews.'">'; };
 
@@ -156,28 +122,29 @@ include ('admin/includes/config1.php');
 
 ob_start('ob_gzhandler'); register_shutdown_function('ob_end_flush');
 
-$allnews = unserialize(base64_decode(file_get_contents('news.php')));
+$allnews = uag_read_news(__DIR__ . '/../news.php');
 
 $nb_messagetotal = count($allnews);
 
 $nbPages = ceil($nb_messagetotal / 1);
 
-if(isset($_GET['page']) && (intval($_GET['page']) <= $nbPages)) {
+$requestedPage = $_GET['page'] ?? null;
+$page = is_string($requestedPage) && ctype_digit($requestedPage)
+    ? max(0, min($nbPages - 1, (int) $requestedPage - 1))
+    : 0;
 
-$page = intval($_GET['page']) - 1; }
-
-$liste_news = array_slice($allnews, $page, 1); 
+$liste_news = array_slice($allnews, max(0, $page ?? 0), 1);
 
 
 if(!empty($liste_news)) { foreach($liste_news as $id => $news) {
 
-echo'<h2><a href=""><strong>'.$news['titre'].' '.Par.' '.base64_decode($tableau[2]).' - ';
+echo'<h2><a href=""><strong>'.uag_escape_legacy_text($news['titre']).' '.Par.' '.uag_escape_legacy_text(base64_decode($tableau[2])).' - ';
 
 if (base64_decode($tableau[1])=='fr') { 
 
 if (base64_decode($tableau[10])=='on') { 
 
-echo ''.$news['jour'].' ';
+echo uag_escape_legacy_text($news['jour']).' ';
 
 if     ($news['mois']=='01') {echo ''.Janvier.'' ;}
 elseif ($news['mois']=='02') {echo ''.Fevrier.'' ;}
@@ -192,17 +159,17 @@ elseif ($news['mois']=='10') {echo ''.Octobre.'' ;}
 elseif ($news['mois']=='11') {echo ''.Novembre.'' ;}
 elseif ($news['mois']=='12') {echo ''.Decembre.'' ;}
 
-echo ' '.$news['annee'].' ';
+echo ' '.uag_escape_legacy_text($news['annee']).' ';
 
  }
 
-elseif (base64_decode($tableau[10])=='off') { echo' '.$news['jour'].'-'.$news['mois'].'-'.$news['annee'].' '; } }
+elseif (base64_decode($tableau[10])=='off') { echo' '.uag_escape_legacy_text($news['jour']).'-'.uag_escape_legacy_text($news['mois']).'-'.uag_escape_legacy_text($news['annee']).' '; } }
 
 else { 
 
 if (base64_decode($tableau[10])=='on') { 
 
-echo ''.$news['annee'].' ';
+echo uag_escape_legacy_text($news['annee']).' ';
 
 if     ($news['mois']=='01') {echo ''.Janvier.'' ;}
 elseif ($news['mois']=='02') {echo ''.Fevrier.'' ;}
@@ -217,13 +184,13 @@ elseif ($news['mois']=='10') {echo ''.Octobre.'' ;}
 elseif ($news['mois']=='11') {echo ''.Novembre.'' ;}
 elseif ($news['mois']=='12') {echo ''.Decembre.'' ;}
 
-echo ' '.$news['jour'].' ';
+echo ' '.uag_escape_legacy_text($news['jour']).' ';
 
  }
 
-elseif (base64_decode($tableau[10])=='off') { echo' '.$news['annee'].'-'.$news['mois'].'-'.$news['jour'].' '; } }
+elseif (base64_decode($tableau[10])=='off') { echo' '.uag_escape_legacy_text($news['annee']).'-'.uag_escape_legacy_text($news['mois']).'-'.uag_escape_legacy_text($news['jour']).' '; } }
 
-echo'</strong></a></h2><div id="article" style="padding-left:10px">'.$news['contenu'].'</div>';		
+echo'</strong></a></h2><div id="article" style="padding-left:10px">'.uag_sanitize_article_html($news['contenu']).'</div>';
 
 }
 }
@@ -313,46 +280,52 @@ Off
 }
 }
 
-function disqus()  {
+function public_article_id(array $articles): ?int
+{
+    if ($articles === []) {
+        return null;
+    }
+    $requestedPage = $_GET['page'] ?? null;
+    $offset = is_string($requestedPage) && ctype_digit($requestedPage)
+        ? max(0, (int) $requestedPage - 1)
+        : 0;
+    $offset = min($offset, count($articles) - 1);
+    $selected = array_slice($articles, $offset, 1, true);
 
-$fichier='admin/configuration.txt';
-$tableau=array();
-$tableau=lire_array($fichier);
-
-if (base64_decode($tableau[3])=='') {echo'</article><article style="min-height:0px;font-weight:bold;text-align:center;">Les commentaires ne sont pas activés.';}
-
-else {
-
-echo'</article>';
-
-$connect2 = TRUE; $ip_internet2 = 'www.disqus.com'; $port_internet2 = 80; 
-
-if (! $sock2 = @fsockopen($ip_internet2, $port_internet2, $num2, $error2, 5)) { 
-
-echo '<article style="min-height:0px;font-weight:bold;text-align:center;">
-
-<div id="disqus_thread" style="text-align:center;">Disqus : Off'; }
-
-else { echo'<article><div id="disqus_thread"><script type="text/javascript">';
-
-if (base64_decode($tableau[1])=='fr') {echo'var disqus_config = function () { this.language = "fr";};';}
-
-else {echo'var disqus_config = function () { this.language = "en";};';} 
-
-echo'
-var disqus_shortname = \''.base64_decode($tableau[3]).'\'; // required: replace example with your forum shortname
-(function() {
-var dsq = document.createElement(\'script\'); dsq.type = \'text/javascript\'; dsq.async = true;
-dsq.src = \'http://\' + disqus_shortname + \'.disqus.com/embed.js\';
-(document.getElementsByTagName(\'head\')[0] || document.getElementsByTagName(\'body\')[0]).appendChild(dsq);
-})();
- </script>
-<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-';
-
-};
-echo'</div>';
+    return $selected === [] ? null : (int) array_key_first($selected);
 }
+
+function comments(): void
+{
+    echo '</article>';
+    if (!uag_comments_enabled()) {
+        return;
+    }
+
+    $articleId = public_article_id(uag_read_news());
+    if ($articleId === null) {
+        return;
+    }
+
+    echo '<article class="comments"><h2>Commentaires</h2>';
+    if (($_GET['comment'] ?? '') === 'sent') {
+        echo '<p role="status">Votre commentaire a été envoyé et sera visible après validation.</p>';
+    }
+    foreach (uag_comments_for_article($articleId) as $comment) {
+        echo '<section class="comment"><h3>' . uag_escape($comment['author']) . '</h3>';
+        echo '<p class="comment-date">' . uag_escape($comment['created_at']) . '</p>';
+        echo '<p>' . nl2br(uag_escape($comment['body']), false) . '</p></section>';
+    }
+
+    echo '<form class="comment-form" method="post" action="index2.php?module=articles&amp;page='
+        . (int) ($_GET['page'] ?? 1) . '">'
+        . uag_csrf_input()
+        . '<input type="hidden" name="comment_submit" value="1">'
+        . '<label for="comment-author">Nom</label>'
+        . '<input id="comment-author" name="author" maxlength="120" required autocomplete="name">'
+        . '<label for="comment-body">Commentaire</label>'
+        . '<textarea id="comment-body" name="body" maxlength="5000" required rows="6"></textarea>'
+        . '<button type="submit">Envoyer le commentaire</button></form></article>';
 }
 
 /* Profil */
@@ -385,7 +358,12 @@ else {
 echo' ( ';
 
 function age($naiss)  {
-  list($annee, $mois, $jour) = preg_split('[/.]', $naiss);
+  $dateParts = preg_split('~[/.]~', $naiss);
+  if (!is_array($dateParts) || count($dateParts) !== 3
+      || !uag_valid_article_date($dateParts[0], $dateParts[1], $dateParts[2])) {
+      return;
+  }
+  [$annee, $mois, $jour] = $dateParts;
   $today['mois'] = date('n');
   $today['jour'] = date('j');
   $today['annee'] = date('Y');
@@ -467,73 +445,19 @@ echo'</td></tr></table></div>';
 
 function accueil() {
 
-$test01=substr(decoct(fileperms("../admin/configuration.txt")),3);
-$test02=substr(decoct(fileperms("../images")),2);
-$test03=substr(decoct(fileperms("../news.php")),3);
+$test01=is_writable(__DIR__ . '/../data');
+$test02=is_writable(__DIR__ . '/../images');
+$test03=is_file(__DIR__ . '/../data/uag.sqlite') && is_writable(__DIR__ . '/../data/uag.sqlite');
 
-$connect = TRUE;                              
-$ip_internet = 'www.julien-et-nel.be';          
-$port_internet = 80; 
-
-if (! $sock = @fsockopen($ip_internet, $port_internet, $num, $error, 5)) { echo ' <div id="erreur"><p>'.Erreuracceuila.'</p></div>'; }
-
-else { 
-
-if (base64_decode($tableau[1])=='fr') { 
-$file2 = 'http://julien-et-nel.be/UAG/mots.txt';
+$status = [
+    [$test01, CONFIGOUI, CONFIGNON],
+    [$test02, IMAGESOUI, IMAGESNON],
+    [$test03, ARTICLOUI, ARTICLNON],
+];
+foreach ($status as [$isReady, $success, $failure]) {
+    $class = $isReady ? 'valide' : 'erreur';
+    echo '<div id="' . $class . '"><p>' . ($isReady ? $success : $failure) . '</p></div>';
 }
-else {
-$file2 = 'http://julien-et-nel.be/UAG/mots2.txt';
-};
-
-$file_headers2 = @get_headers($file2);
-
-if($file_headers2[0] == 'HTTP/1.1 503 Service Unavailable') { 
-
-echo'<div id="erreur"><p>'.Erreuracceuilb.'</p></div>';
-
-}
-
-elseif($file_headers2[0] == 'HTTP/1.1 404 Not Found') { 
-
-echo'<div id="erreur"><p>'.Erreuracceuilb.'</p></div>';
-
-}
-
-elseif($file_headers2[0] == 'HTTP/1.1 502 Not Implemented') { 
-
-echo'<div id="erreur"><p>'.Erreuracceuilb.'</p></div>';
-
-}
-
-else {
-
-echo'<div id="info"><p>'.Mots.' : ';
-
-echo htmlspecialchars(file_get_contents($file2));
-
-echo'</p></div>';
-
-}
-
-if ($test01=='666') { echo '<div id="valide"><p>'.CONFIGOUI.'</p></div>'; } else {echo'<div id="erreur"><p>'.CONFIGNON.'</p></div>';};
-
-if ($test02=='777') { echo '<div id="valide"><p>'.IMAGESOUI.'</p></div>'; } else {echo'<div id="erreur"><p>'.IMAGESNON.'</p></div>';};
-
-if ($test03=='666') { echo '<div id="valide"><p>'.ARTICLOUI.'</p></div>'; } else {echo'<div id="erreur"><p>'.ARTICLNON.'</p></div>';};
-
-$file = 'http://julien-et-nel.be/UAG/UAG-1-97.txt';
-$file_headers = @get_headers($file);
-if($file_headers[0] == 'HTTP/1.1 404 Not Found') {
-
-echo'<div id="erreur"><a href="http://julien-et-nel.be/UAG/" style="color:black;"><p>'.MauvaiseVersion.'</p></a></div>';
- }
-else {
-
-if($file_headers[0] == 'HTTP/1.1 503 Service Unavailable') { }
-elseif($file_headers[0] == 'HTTP/1.1 502 Not Implemented') { } 
-else {echo'<div id="valide"><p>'.BonneVersion.'</p></div>';}
-} fclose($sock); }
 
 echo'<div id="pays"><p>'.Pays.'</p></div>';
 
@@ -553,10 +477,10 @@ echo'
 <head>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <meta http-equiv="x-ua-compatible" content="ie=edge" />
-<title>UAG CMS</title>
-<meta name="Description" content="Administration de UAG CMS" />
+<title>Elodie CMS</title>
+<meta name="Description" content="Administration de Elodie CMS" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="stylesheet" href="defaut.css" />
 <link rel="stylesheet" href="defaut2.css" />
 <link rel="shortcut icon" type="image/x-icon" href="'.base64_decode($tableau[5]).'/Favicon.ico" sizes="16x16" />
@@ -586,7 +510,7 @@ border:none !important;
 };
 </style>';
 
-if ($_GET['id']=='2') {  
+if (($_GET['id'] ?? '') === '2') {
 
 echo'<meta http-equiv="refresh" content="1; URL=index2.php?page=configuration">
 <style type="text/css">
@@ -599,25 +523,59 @@ margin:0px !important;
 <p><span class="ui-icon ui-icon-info" style="float: left; margin:auto;text-align:center;margin-right: .3em;margin-left: .3em;"></span>
 '.Modificationeffectuee.'</p></div>';
  
-// Fichier de transition pour &eacute;cup&eacute;rer les donn&eacute;es du formulaire
+$password = $_POST['7'] ?? null;
+if (!is_string($password)) {
+    http_response_code(400);
+    exit('Le mot de passe est invalide.');
+}
+if ($password !== '' && (strlen($password) < 12 || strlen($password) > 72)) {
+    http_response_code(400);
+    exit('Le mot de passe doit contenir entre 12 et 72 octets.');
+}
+$currentPasswordHash = base64_decode($tableau[7] ?? '', true);
+if ($password === '' && (!is_string($currentPasswordHash) || $currentPasswordHash === '')) {
+    throw new RuntimeException('Le mot de passe administrateur actuel est introuvable.');
+}
 
-$f=fopen($fichier,"w");fclose($f); // on efface le fichier, on le cr&eacute;e à nouveau (vide)
-
-$salt = 'BwGk15l8WX'; 
-
-$valideforma = array( '0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','31');
-
-foreach ($valideforma as $valideforma1) { $_POST[$valideforma1] = str_replace(array('-','php'),array('-',''), $_POST[$valideforma1]); };
-
-$valideformb = array( '0','1','2','3','4','5','6');
-
-foreach ($valideformb as $valideformb1) { ajout($fichier,trim(base64_encode(stripslashes((htmlentities($_POST[$valideformb1],null,'UTF-8')))))); };
-
-ajout($fichier,trim(base64_encode(stripslashes((sha1($_POST[7].$salt))))));	
-
-$valideformc = array( '8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','31');
-
-foreach ($valideformc as $valideformc1) { ajout($fichier,trim(base64_encode(stripslashes((htmlentities($_POST[$valideformc1],null,'UTF-8')))))); };
+$settings = [];
+for ($index = 0; $index < 32; $index++) {
+    if ($index === 7) {
+        $settings[$index] = $password === ''
+            ? $currentPasswordHash
+            : password_hash($password, PASSWORD_DEFAULT);
+        continue;
+    }
+    $value = html_entity_decode(uag_post_string((string) $index), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    if (in_array($index, [15, 23, 25, 26, 30, 31], true) && !uag_valid_url_setting($value)) {
+        http_response_code(400);
+        exit('Une adresse de ressource est invalide.');
+    }
+    if ($index === 5 && !uag_valid_http_url($value)) {
+        http_response_code(400);
+        exit('L’adresse du site est invalide.');
+    }
+    if ($index === 3 && !in_array($value, ['on', 'off'], true)) {
+        http_response_code(400);
+        exit('Le réglage des commentaires est invalide.');
+    }
+    if ($index === 1 && !in_array($value, ['en', 'es', 'fr', 'nl'], true)) {
+        http_response_code(400);
+        exit('La langue sélectionnée est invalide.');
+    }
+    if (in_array($index, [4, 9, 10], true) && !in_array($value, ['on', 'off'], true)) {
+        http_response_code(400);
+        exit('Une option de configuration est invalide.');
+    }
+    if ($index === 8 && !in_array($value, ['on', 'on2', 'off'], true)) {
+        http_response_code(400);
+        exit('Une option de configuration est invalide.');
+    }
+    $settings[$index] = htmlentities($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+$encodedSettings = array_map('base64_encode', $settings);
+uag_write_encoded_configuration($encodedSettings);
+$_SESSION['_login'] = html_entity_decode($settings[6], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+$_SESSION['_pass'] = $settings[7];
 
 }
 
@@ -625,14 +583,14 @@ else {
   
 error_reporting(0);
 
-echo'<form action="index2.php?page=configuration&id=2" method="post">
+echo'<form action="index2.php?page=configuration&id=2" method="post">'.uag_csrf_input().'
 	
 <div class="coda-slider"  id="main-slider">
 <div>
 <div class="coda-slider"  id="showcase">';
  
-if (base64_decode($tableau[4])==on) {$paginationOn = 'selected="selected"';}
-elseif (base64_decode($tableau[4])==off) {$paginationOff = 'selected="selected"';}
+if (base64_decode($tableau[4])==='on') {$paginationOn = 'selected="selected"';}
+elseif (base64_decode($tableau[4])==='off') {$paginationOff = 'selected="selected"';}
 else {$paginationOn = 'selected="selected"';}
 
 echo'<div>
@@ -672,7 +630,10 @@ echo'<option '.$languages2.'>'.$languages1.'</option>';
 echo'</SELECT></td></tr>
 
 <tr><td class="titre"></br>'.Gerant.'  &nbsp;</td><td></br><input type="text" required name="2" value="'.base64_decode($tableau[2]).'" placeholder="'.Webmasterb.'" STYLE="width:170px;"/></td>
-<td class="titre" style="padding-left:20px;"></br>Disqus  &nbsp;</td><td></br><input type="text" name="3" value="'.base64_decode($tableau[3]).'" placeholder="ID DISQUS" STYLE="width:170px;"/></td></tr>
+<td class="titre" style="padding-left:20px;"></br>Commentaires internes &nbsp;</td><td></br><select name="3" style="width:180px;">
+<option value="off" '.(base64_decode($tableau[3] ?? '') === 'on' ? '' : 'selected="selected"').'>Désactivés</option>
+<option value="on" '.(base64_decode($tableau[3] ?? '') === 'on' ? 'selected="selected"' : '').'>Activés</option>
+</select></td></tr>
 <tr>
 <td class="titre"></br>'.Pagination.'  &nbsp;</td><td></br><SELECT value="'.base64_decode($tableau[4]).'" name="4" STYLE="width:180px;">
 <option value="on" '.$paginationOn.'>'.Pagingi.'</option>
@@ -686,11 +647,11 @@ echo'</SELECT></td></tr>
 <td class="titre"></br>'.Login.'  &nbsp;</td><td></br><input type="text" required name="6" value="'.base64_decode($tableau[6]).'" placeholder="'.Loginb.'" STYLE="width:170px;" alt=""/></td>
 ';
 
-if (base64_decode($tableau[8])==on) {$selectedon = 'selected="selected"';}
+if (base64_decode($tableau[8])==='on') {$selectedon = 'selected="selected"';}
 
-elseif (base64_decode($tableau[8])==on2) {$selectedon2 = 'selected="selected"';}
+elseif (base64_decode($tableau[8])==='on2') {$selectedon2 = 'selected="selected"';}
 
-elseif (base64_decode($tableau[8])==off) {$selectedoff = 'selected="selected"';}
+elseif (base64_decode($tableau[8])==='off') {$selectedoff = 'selected="selected"';}
 
 echo'<td class="titre" style="padding-left:20px;"></br>URL Rewriting  &nbsp;</td><td></br><SELECT value="'.base64_decode($tableau[8]).'" name="8" STYLE="width:180px;">
 <OPTION VALUE="on" '.$selectedon.'>'.urli.'</OPTION>
@@ -698,18 +659,18 @@ echo'<td class="titre" style="padding-left:20px;"></br>URL Rewriting  &nbsp;</td
 <OPTION VALUE="off" '.$selectedoff.'>'.urliii.'</OPTION>
 </SELECT></td></tr>';
 
-if (base64_decode($tableau[9])==on) {$selected1 = 'selected="selected"';}
+if (base64_decode($tableau[9])==='on') {$selected1 = 'selected="selected"';}
 
-elseif (base64_decode($tableau[9])==off) {$selected2 = 'selected="selected"';}
+elseif (base64_decode($tableau[9])==='off') {$selected2 = 'selected="selected"';}
 
 echo'<tr><td class="titre"></br>'.LienAdmin.'  &nbsp;</td><td></br><SELECT value="'.base64_decode($tableau[9]).'" name="9" STYLE="width:180px;">
 <OPTION VALUE="on" '.$selected1.'>'.urliiii.'</OPTION>
 <OPTION VALUE="off" '.$selected2.'>'.urliiiii.'</OPTION>
 </SELECT></td>';
 
-if (base64_decode($tableau[10])==on) {$selecteddate1 = 'selected="selected"';}
+if (base64_decode($tableau[10])==='on') {$selecteddate1 = 'selected="selected"';}
 
-elseif (base64_decode($tableau[10])==off) {$selecteddate2 = 'selected="selected"';}
+elseif (base64_decode($tableau[10])==='off') {$selecteddate2 = 'selected="selected"';}
 
 echo'<td class="titre" style="padding-left:20px;"></br>'.Date.'  &nbsp;</td><td></br><SELECT value="'.base64_decode($tableau[10]).'" name="10" STYLE="width:180px;">
 <OPTION VALUE="on" '.$selecteddate1.'>'.Lettre.'</OPTION>
@@ -1217,7 +1178,7 @@ echo'
 
 <table style="margin:auto;padding-right:0px;">
 <tr>
-<td class="titre"></br>'.Code.'  &nbsp;</td><td></br><input type="password" autocomplete="off" required name="7" value="" placeholder="'.Codea.'" alt="" STYLE="width:200px;" /></td>
+<td class="titre"></br>'.Code.'  &nbsp;</td><td></br><input type="password" autocomplete="new-password" minlength="12" maxlength="72" name="7" value="" placeholder="Laisser vide pour conserver le mot de passe actuel" alt="" STYLE="width:200px;" /></td>
 </tr>  
 </table>
 		
@@ -1249,22 +1210,22 @@ $tableau=lire_array($fichier);
 echo'<table class="data" style="border-collapse: collapse !important ;"><thead><tr>
 <th style="width:300px;border:1px solid #CCCCCC; text-transform: uppercase; background-color:#E2E2E2;"><center>'.Titre.'</center></th><th style="width:100px;border:1px solid #CCCCCC; text-transform: uppercase; background-color:#E2E2E2;"><center>'.Date.'</center></th><th style="width:100px;border:1px solid #CCCCCC; text-transform: uppercase; background-color:#E2E2E2;"><center>'.Auteur.'</center></th><th style="width:100px;border:1px solid #CCCCCC; text-transform: uppercase; background-color:#E2E2E2;"><center>'.Supprimer.'</center></th><th style="width:100px;border:1px solid #CCCCCC; text-transform: uppercase; background-color:#E2E2E2;"><center>'.Editer.'</center></th></tr></thead></table>';
  
-$liste_news = unserialize(base64_decode(file_get_contents('../news.php')));
+$liste_news = uag_read_news(__DIR__ . '/../news.php');
 if(!empty($liste_news)) {
 	foreach($liste_news as $id => $news) {
 
 echo'<table class="data" style="border-collapse: collapse !important ;">
 <thead><tr >
 <td style="width:300px;border:1px solid #CCCCCC;background-color:#FFF9F4;">';
-echo $news['titre'];
+echo uag_escape_legacy_text($news['titre']);
 echo'</td>
 <td style="width:100px;border:1px solid #CCCCCC;background-color:#FFF9F4;text-align:center;">';
-if (base64_decode($tableau[1])=='fr') { echo' '.$news['jour'].'-'.$news['mois'].'-'.$news['annee'].' '; }
-else { echo' '.$news['annee'].'-'.$news['mois'].'-'.$news['jour'].' '; }
+if (base64_decode($tableau[1])=='fr') { echo' '.uag_escape_legacy_text($news['jour']).'-'.uag_escape_legacy_text($news['mois']).'-'.uag_escape_legacy_text($news['annee']).' '; }
+else { echo' '.uag_escape_legacy_text($news['annee']).'-'.uag_escape_legacy_text($news['mois']).'-'.uag_escape_legacy_text($news['jour']).' '; }
 echo'</td>
 <td style="width:100px;border:1px solid #CCCCCC;background-color:#FFF9F4;"><center>';
 echo base64_decode($tableau[2]);
-echo'</center></td><td style="width:100px;border:1px solid #CCCCCC;background-color:#FFF9F4;"><center><a href="index2.php?page=supprimer&id='.$id.'");"><img src="images/supprimer.png" alt="Supprimer" width="16px"></a></center></td><td style="width:100px;border:1px solid #CCCCCC;background-color:#FFF9F4;"><center><a href="index2.php?page=editer&id='.$id.'"><img src="images/edition.png" alt="Editer" width="16px"></a></center></td></tr></thead></table>';
+echo'</center></td><td style="width:100px;border:1px solid #CCCCCC;background-color:#FFF9F4;"><center><form method="post" action="index2.php?page=supprimer">'.uag_csrf_input().'<input type="hidden" name="id" value="'.(int) $id.'"><button type="submit" aria-label="'.Supprimer.'"><img src="images/supprimer.png" alt="'.Supprimer.'" width="16px"></button></form></center></td><td style="width:100px;border:1px solid #CCCCCC;background-color:#FFF9F4;"><center><a href="index2.php?page=editer&id='.(int) $id.'"><img src="images/edition.png" alt="Editer" width="16px"></a></center></td></tr></thead></table>';
 }
 }
 } 
@@ -1273,7 +1234,7 @@ echo'</center></td><td style="width:100px;border:1px solid #CCCCCC;background-co
 
 function formulaire_images() {
 
-echo'<form method="POST" action="index2.php?page=upload" enctype="multipart/form-data">
+echo'<form method="POST" action="index2.php?page=upload" enctype="multipart/form-data">'.uag_csrf_input().'
      <input type="hidden" name="MAX_FILE_SIZE" value="1048576">
      '.Fichier.' : <input type="file" name="avatar">
      <input type="submit" name="envoyer" value="'.Ok.'">
@@ -1318,7 +1279,7 @@ html { float: left; width: 100%;     overflow: auto;
 
 $dir = '../images/';
 $dir2 = '/images/';
-$valide_extensions = array('jpg', 'jpeg', 'gif', 'png', 'svg', 'bmp', 'JPG', 'JPEG', 'GIF', 'PNG', 'SVG', 'BMP');
+$valide_extensions = array('jpg', 'jpeg', 'gif', 'png', 'bmp');
 
 $Ressource = opendir($dir);
 while($fichier = readdir($Ressource))
@@ -1336,36 +1297,20 @@ while($fichier = readdir($Ressource))
 
          if(in_array($ext, $valide_extensions))
          {
-echo '<li class="ui-widget-content ui-corner-tr" style="list-style-type:none;margin-top:25px;"><div> <h5 class="ui-widget-header">'.$test_Fichier2.'</h5>
+echo '<li class="ui-widget-content ui-corner-tr" style="list-style-type:none;margin-top:25px;"><div> <h5 class="ui-widget-header">'.uag_escape($test_Fichier2).'</h5>
 
-<img src="'.$test_Fichier.'" "width="96" height="72">
+<img src="'.uag_escape($test_Fichier).'" width="96" height="72">
 
-<div style="text-align:center;" /><a href="javascript:OuvrirPopup(\''.base64_decode($tableau[5]).''.$test_Fichier3.'\', \'\', \'resizable=no, location=no, width=500, height=500,top=200px,left=200px, menubar=no, status=no, scrollbars=no, menubar=no\')" class="ui-icon ui-icon-zoomin"></a>
+<div style="text-align:center;"><a href="'.uag_escape(rtrim(base64_decode($tableau[5]), '/').$test_Fichier3).'" target="_blank" rel="noopener noreferrer" class="ui-icon ui-icon-zoomin" aria-label="Aperçu"></a>
 
-<a href="index2.php?page=delete&id='.$test_Fichier2.'" class="ui-icon ui-icon-trash">';
+<form method="post" action="index2.php?page=delete">'.uag_csrf_input().'<input type="hidden" name="id" value="'.uag_escape($test_Fichier2).'"><button type="submit" class="ui-icon ui-icon-trash" aria-label="'.Supprimer.'">';
 
-echo'</a></div></div></li>'; } } }
+echo'</button></form></div></div></li>'; } } }
 
 echo'</ul>'; }
 
 /* Script pour &eacute;viter les slash dans les articles */
 function anti_slash() {
-
-if (get_magic_quotes_gpc()) {
-    $process = array(&$_GET, &$_POST, &$_COOKIE, &$_REQUEST);
-    while (list($key, $val) = each($process)) {
-        foreach ($val as $k => $v) {
-            unset($process[$key][$k]);
-            if (is_array($v)) {
-                $process[$key][stripslashes($k)] = $v;
-                $process[] = &$process[$key][stripslashes($k)];
-            } else {
-                $process[$key][stripslashes($k)] = stripslashes($v);
-            }
-        }
-    }
-    unset($process);
-}
 
 }
 /* Script pour ajouter une news via l'administration */
@@ -1378,51 +1323,23 @@ $tableau=lire_array($fichier);
 
 if(isset($_POST['titre']) && isset($_POST['contenu']) && isset($_POST['chapo']) && isset($_POST['jour']) && isset($_POST['mois']) && isset($_POST['annee'])) {
      //On d&eacute;finit les variables
-$titre = htmlentities($_POST['titre'],null,'UTF-8');
-$contenu = htmlentities($_POST['contenu'],ENT_QUOTES,'UTF-8');
+$titre = uag_post_string('titre');
+$contenu = uag_post_string('contenu');
 
-$in = '(&lt;(/?(?:strong|p|em|a|ol|ul|li|img|iframe)\b.*?)&gt;)ie';
-$contenu = preg_replace($in, "'<'.html_entity_decode('$1',ENT_QUOTES,'UTF-8').'>'", $contenu);
-
-$contenu = str_replace(array(
-
-':)'
-,':('
-,'XD'
-,':D'
-,':p'
-,':o'
-,'&lt;br&gt;'
-,'&lt;br /&gt;'
-,'&amp;nbsp;'
-,'&amp;lt;3'
-
-), 
-
-array(
-
-'<img src="'.base64_decode($tableau[5]).'/admin/images/smileys/Content.png" alt=":)" class="" />'
-,'<img src="'.base64_decode($tableau[5]).'/admin/images/smileys/Embarrassed.png" alt=":(" class="" />'
-,'<img src="'.base64_decode($tableau[5]).'/admin/images/smileys/Grin.png" alt="XD" class="" />'
-,'<img src="'.base64_decode($tableau[5]).'/admin/images/smileys/Laughing.png" alt=":D" class="" />'
-,'<img src="'.base64_decode($tableau[5]).'/admin/images/smileys/Yuck.png" alt=":p" class="" />'
-,'<img src="'.base64_decode($tableau[5]).'/admin/images/smileys/Gasp.png" alt=":o" class="" />'
-,'<br />'
-,'<br />'
-,' '
-,'<img src="'.base64_decode($tableau[5]).'/admin/images/smileys/HeartEyes.png" alt="<3" class="" />'
-
-), $contenu);
-
-     $chapo = htmlentities($_POST['chapo'],null,'UTF-8');
-     $jour = htmlentities($_POST['jour'],null,'UTF-8');
-     $mois = htmlentities($_POST['mois'],null,'UTF-8');
-     $annee = htmlentities($_POST['annee'],null,'UTF-8');
-	 $note = htmlentities($_POST['note'],null,'UTF-8');
-	//On r&eacute;cup&egrave;re les donn&eacute;es d&eacute;jà existantes
-	$news = unserialize(base64_decode(file_get_contents('../news.php')));
+     $chapo = uag_post_string('chapo');
+     $jour = uag_post_string('jour');
+     $mois = uag_post_string('mois');
+     $annee = uag_post_string('annee');
+	 $note = uag_post_string('note');
+     if (!uag_valid_article_date($annee, $mois, $jour)
+         || !in_array($note, ['Off', '0', '1', '2', '3', '4', '5'], true)) {
+         throw new InvalidArgumentException('La date ou la note de l’article est invalide.');
+     }
+     $contenu = uag_sanitize_article_html($contenu);
+	//On r&eacute;cup&egrave;re les donn&eacute;es d&eacutejà existantes
+	$news = uag_read_news(__DIR__ . '/../news.php');
 	$news[] = array('titre' => $titre, 'jour' => $jour, 'mois' => $mois, 'annee' => $annee,'contenu' => $contenu, 'chapo' => $chapo, 'note' => $note);
-	file_put_contents('../news.php', base64_encode(serialize($news)));
+	uag_write_news(__DIR__ . '/../news.php', $news);
 	
       echo '<style type="text/css">
 .ui-dialog,.ui-dialog-content{
@@ -1442,10 +1359,10 @@ else {
 <head>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <meta http-equiv="x-ua-compatible" content="ie=edge" />
-<title>UAG CMS</title>
-<meta name="Description" content="Administration de UAG CMS" />
+<title>Elodie CMS</title>
+<meta name="Description" content="Administration de Elodie CMS" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="stylesheet" href="defaut.css" />
 <link rel="stylesheet" href="defaut2.css" />
 <link rel="shortcut icon" type="image/x-icon" href="'.base64_decode($tableau[5]).'/Favicon.ico" sizes="16x16" />
@@ -1469,7 +1386,7 @@ else {
 <body>
 <body onload="whizzywig()">	 
 	 
-	 <form action="" method="post">
+	 <form action="" method="post">'.uag_csrf_input().'
 <label for="pseudo">'.Auteur.'</label> :<strong> '.base64_decode($tableau[2]).'</strong> -  <label for="titre">'.Titre.' : </label> <input type="text" required name="titre" id="titre" placeholder="'.Articla.'" /> -  
 
 <label for="jour">'.Jour.'</label> : <SELECT name="jour" id="jour" STYLE="width:70px;">';
@@ -1523,56 +1440,38 @@ $fichier='configuration.txt';
 $tableau=array();
 $tableau=lire_array($fichier);    
 
-if(!isset($_GET['id'])) {
+if(!isset($_GET['id']) || !is_string($_GET['id']) || !ctype_digit($_GET['id'])) {
 	header('Location: index.php?page=liste');
 	exit();
 }
 
-$news = unserialize(base64_decode(file_get_contents('../news.php')));
+$news = uag_read_news(__DIR__ . '/../news.php');
 $newsAmodifier = (int) $_GET['id'];
+if (!isset($news[$newsAmodifier]) || !is_array($news[$newsAmodifier])) {
+    http_response_code(404);
+    exit('Article introuvable.');
+}
 if(isset($_POST['titre']) && isset($_POST['contenu'])) {
-$news[$newsAmodifier]['titre'] = htmlentities($_POST['titre'],null,'UTF-8');
-$news[$newsAmodifier]['jour'] = htmlentities($_POST['jour'],null,'UTF-8');
-$news[$newsAmodifier]['mois'] = htmlentities($_POST['mois'],null,'UTF-8');
-$news[$newsAmodifier]['annee'] = htmlentities($_POST['annee'],null,'UTF-8');
+$news[$newsAmodifier]['titre'] = uag_post_string('titre');
+$news[$newsAmodifier]['jour'] = uag_post_string('jour');
+$news[$newsAmodifier]['mois'] = uag_post_string('mois');
+$news[$newsAmodifier]['annee'] = uag_post_string('annee');
+if (!uag_valid_article_date(
+    $news[$newsAmodifier]['annee'],
+    $news[$newsAmodifier]['mois'],
+    $news[$newsAmodifier]['jour']
+)) {
+    throw new InvalidArgumentException('La date de l’article est invalide.');
+}
+$news[$newsAmodifier]['contenu'] = uag_sanitize_article_html(uag_post_string('contenu'));
 
-$news[$newsAmodifier]['contenu'] = htmlentities($_POST['contenu'], ENT_QUOTES,'UTF-8');
-$in = '(&lt;(/?(?:strong|p|em|a|ol|ul|li|img|iframe)\b.*?)&gt;)ie';
-$news[$newsAmodifier]['contenu'] = preg_replace($in, "'<'.html_entity_decode('$1',ENT_QUOTES,'UTF-8').'>'", $news[$newsAmodifier]['contenu']);
-
-$news[$newsAmodifier]['contenu'] = str_replace(array(
-
-':)'
-,':('
-,'XD'
-,':D'
-,':p'
-,':o'
-,'&lt;br&gt;'
-,'&lt;br /&gt;'
-,'&amp;nbsp;'
-,'&amp;lt;3'
-
-), 
-
-array(
-
-'<img src="'.base64_decode($tableau[5]).'/admin/images/smileys/Content.png" alt=":)" class="" />'
-,'<img src="'.base64_decode($tableau[5]).'/admin/images/smileys/Embarrassed.png" alt=":(" class="" />'
-,'<img src="'.base64_decode($tableau[5]).'/admin/images/smileys/Grin.png" alt="XD" class="" />'
-,'<img src="'.base64_decode($tableau[5]).'/admin/images/smileys/Laughing.png" alt=":D" class="" />'
-,'<img src="'.base64_decode($tableau[5]).'/admin/images/smileys/Yuck.png" alt=":p" class="" />'
-,'<img src="'.base64_decode($tableau[5]).'/admin/images/smileys/Gasp.png" alt=":o" class="" />'
-,'<br />'
-,'<br />'
-,' '
-,'<img src="'.base64_decode($tableau[5]).'/admin/images/smileys/HeartEyes.png" alt="<3" class="" />'
-
-), $news[$newsAmodifier]['contenu']);
-
-	$news[$newsAmodifier]['chapo'] = htmlentities($_POST['chapo'],null,'UTF-8');
-	$news[$newsAmodifier]['note'] = htmlentities($_POST['note'],null,'UTF-8');
-	file_put_contents('../news.php', base64_encode(serialize($news)));
+$news[$newsAmodifier]['contenu'] = uag_sanitize_article_html($news[$newsAmodifier]['contenu']);
+	$news[$newsAmodifier]['chapo'] = uag_post_string('chapo');
+	$news[$newsAmodifier]['note'] = uag_post_string('note');
+    if (!in_array($news[$newsAmodifier]['note'], ['Off', '0', '1', '2', '3', '4', '5'], true)) {
+        throw new InvalidArgumentException('La note de l’article est invalide.');
+    }
+	uag_write_news(__DIR__ . '/../news.php', $news);
 	echo '<style type="text/css">
 .ui-dialog,.ui-dialog-content{
 min-height: 0px !important;
@@ -1591,10 +1490,10 @@ echo'
 <head>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <meta http-equiv="x-ua-compatible" content="ie=edge" />
-<title>UAG CMS</title>
-<meta name="Description" content="Administration de UAG CMS" />
+<title>Elodie CMS</title>
+<meta name="Description" content="Administration de Elodie CMS" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="stylesheet" href="defaut.css" />
 <link rel="stylesheet" href="defaut2.css" />
 <link rel="shortcut icon" type="image/x-icon" href="'.base64_decode($tableau[5]).'/Favicon.ico" sizes="16x16" />
@@ -1618,16 +1517,16 @@ echo'
 <body>
 <body onload="whizzywig()">
 	
-	<form action="" method="POST">
-	'.Auteur.' : <strong>'.base64_decode($tableau[2]).'</strong> - <label for="titre">'.Titre.' : </label> <input type="text" required name="titre" id="titre"  placeholder="'.Articla.'" value="'.$news[$newsAmodifier]['titre'].'" /> -  
-<label for="jour">'.Jour.' : </label> <input type="text" name="jour" id="jour" value="'.$news[$newsAmodifier]['jour'].'" STYLE="width:70px;" readonly="readonly"/ > 
-- <label for="mois">'.Mois.' : </label> <input type="text" name="mois" id="mois" value="'.$news[$newsAmodifier]['mois'].'" STYLE="width:70px;" readonly="readonly" /> 
-- <label for="annee">'.Annee.' : </label> <input type="text" name="annee" id="annee" value="'.$news[$newsAmodifier]['annee'].'" STYLE="width:70px;" readonly="readonly" /> 
-<br /><br /><label for="chapo">'.Chapo.' : </label><input type="text" required placeholder="'.Articlb.'" name="chapo" id="chapo" rows="" cols="" value="'.$news[$newsAmodifier]['chapo'].'" style="width: 82%;"/><br /><br />';
+	<form action="" method="POST">'.uag_csrf_input().'
+	'.Auteur.' : <strong>'.uag_escape_legacy_text(base64_decode($tableau[2])).'</strong> - <label for="titre">'.Titre.' : </label> <input type="text" required name="titre" id="titre"  placeholder="'.Articla.'" value="'.uag_escape_legacy_text($news[$newsAmodifier]['titre']).'" /> -
+<label for="jour">'.Jour.' : </label> <input type="text" name="jour" id="jour" value="'.uag_escape_legacy_text($news[$newsAmodifier]['jour']).'" STYLE="width:70px;" readonly="readonly"/ >
+- <label for="mois">'.Mois.' : </label> <input type="text" name="mois" id="mois" value="'.uag_escape_legacy_text($news[$newsAmodifier]['mois']).'" STYLE="width:70px;" readonly="readonly" />
+- <label for="annee">'.Annee.' : </label> <input type="text" name="annee" id="annee" value="'.uag_escape_legacy_text($news[$newsAmodifier]['annee']).'" STYLE="width:70px;" readonly="readonly" />
+<br /><br /><label for="chapo">'.Chapo.' : </label><input type="text" required placeholder="'.Articlb.'" name="chapo" id="chapo" rows="" cols="" value="'.uag_escape_legacy_text($news[$newsAmodifier]['chapo']).'" style="width: 82%;"/><br /><br />';
 
 include ('includes/smiley.php');
 
-echo'<textarea name="contenu" id="contenu" rows="" cols="" style="width: 100%;height: 400px;">'.$news[$newsAmodifier]['contenu'].'</textarea>
+echo'<textarea name="contenu" id="contenu" rows="" cols="" style="width: 100%;height: 400px;">'.uag_sanitize_article_html($news[$newsAmodifier]['contenu']).'</textarea>
 	
 <br/><label for="note">'.Note.'</label> : <SELECT name="note" id="note" STYLE="width:70px;">';
 
@@ -1666,20 +1565,15 @@ echo'</SELECT>&nbsp; &nbsp;<b>'.Nota.'</b> .<br/>
 
 function connexion_blog() {
 
-session_start();
-
-$token = uniqid(rand(), true);
-
-$_SESSION['token'] = $token;
-
-$_SESSION['token_time'] = time();
+uag_start_session();
 
 echo'<style type="text/css">#titre2 {box-shadow: rgba(200, 200, 200, 0.702) 0px 4px 10px -1px;border: 1px solid #E5E5E5;background: #FFFFFF;font-weight: 400;padding: 24px 24px 24px;text-align:center;color: red;font-size: 12px;width:250px;} #titre {box-shadow: rgba(200, 200, 200, 0.702) 0px 4px 10px -1px;border: 1px solid #E5E5E5;background: #FFFFFF;font-weight: 400;padding: 24px 24px 24px;text-align:center;color: #777777;font-size: 25px;width:250px;} #retour a:hover {font-weight: bold;} #retour a {color: #777777;text-decoration: none;} #retour {box-shadow: rgba(200, 200, 200, 0.702) 0px 4px 10px -1px;border: 1px solid #E5E5E5;background: #FFFFFF;font-weight: 400;padding: 24px 24px 24px;text-align:center;color: #777777;font-size: 12px;width:250px;} #page2 { margin: auto; width: 200px;} #UAG{text-align:center;font-size: 9px;color: #666666;}#Ok input{color: #FFFFFF;font-weight: 700;background: black !important;border:1px solid #2E83D9;font-size: 14px;} #login form {box-shadow: rgba(200, 200, 200, 0.702) 0px 4px 10px -1px;border: 1px solid #E5E5E5;background: #FFFFFF;font-weight: 400;padding: 24px 24px 24px;text-align:center;color: #777777;font-size: 14px;width:95%;} #login input { box-shadow: inset 1px 1px 2px rgba(200, 200, 200, 0.196);border:1px solid #BBBBBB;background: #F5F5F5; }</style>
 <div id="login"><form action="identification.php" method="post"><b>'.Connexion.'</b><br/><br/>
      '.Login.' <br/><input type="text" name="login" value="" /><br /><br />
      '.Code.' <br/><input type="password" name="mdp" value="" /><br /><br />
+     Code Google Authenticator / code de secours<br/><input type="text" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="32" /><br /><br />
 
-  <input type="hidden" name="token" id="token" value="'.$token.'"/>
+  '.uag_csrf_input().'
 
      <div id="Ok"><input type="submit" value="'.Ok.'"></div></form></div>';
 
@@ -1689,9 +1583,26 @@ echo'<style type="text/css">#titre2 {box-shadow: rgba(200, 200, 200, 0.702) 0px 
 
 function supprimer_images() {
 
-$id = basename($_GET['id']);
-$fichier = "../images/".$id;
-unlink ($fichier);
+$submittedId = $_POST['id'] ?? null;
+if (!is_string($submittedId) || basename($submittedId) !== $submittedId) {
+    http_response_code(400);
+    exit('Nom de fichier invalide.');
+}
+
+$allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp'];
+$extension = strtolower(pathinfo($submittedId, PATHINFO_EXTENSION));
+$directory = realpath(__DIR__ . '/../images');
+$fichier = realpath(__DIR__ . '/../images/' . $submittedId);
+if (!in_array($extension, $allowedExtensions, true)
+    || $directory === false
+    || $fichier === false
+    || dirname($fichier) !== $directory) {
+    http_response_code(404);
+    exit('Image introuvable.');
+}
+if (!unlink($fichier)) {
+    throw new RuntimeException('Impossible de supprimer l’image.');
+}
 echo '<meta http-equiv="Refresh" content="2; url=index2.php?page=images" />';
 echo '<style type="text/css">
 .ui-dialog,.ui-dialog-content{
@@ -1709,16 +1620,16 @@ margin:0px !important;
 function supprimer_news() {
 
 //Si l'id pass&eacute; en param&egrave;tre dans l'url n'existe pas, c'est que le visiteur a &eacute;t&eacute; amenen&eacute; ici par hasard
-if(!isset($_GET['id'])) {
+if(!isset($_POST['id']) || !is_string($_POST['id']) || !ctype_digit($_POST['id'])) {
 	//Donc on redirige vers index.php
 	header('Location: index.php?page=liste');
 	//Puis on stoppe l'ex&eacute;cution du script
 	exit();
 }
 //On r&eacute;cup&egrave;re l'array des news
-$news = unserialize(base64_decode(file_get_contents('../news.php')));
+$news = uag_read_news(__DIR__ . '/../news.php');
 //Puis l'id pass&eacute; en param&egrave;tre
-$id = (int) $_GET['id'];
+$id = (int) $_POST['id'];
 
 //Si la news existe
 if(isset($news[$id])) {
@@ -1726,7 +1637,7 @@ if(isset($news[$id])) {
 	unset($news[$id]);
 	
 	//Puis on sauvegarde le tout
-	file_put_contents('../news.php',  base64_encode(serialize($news)));
+	uag_write_news(__DIR__ . '/../news.php', $news);
 
 echo '<style type="text/css">
 .ui-dialog,.ui-dialog-content{
@@ -1756,12 +1667,44 @@ echo '<center><a href="index2.php?page=liste">'.Retour.'</a></center>';
 
 function envoyer_images() {
 
+$upload = $_FILES['avatar'] ?? null;
+if (!is_array($upload)
+    || ($upload['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK
+    || !isset($upload['tmp_name'])
+    || !is_string($upload['tmp_name'])
+    || !is_uploaded_file($upload['tmp_name'])) {
+    http_response_code(400);
+    exit('Envoi d’image invalide.');
+}
+
+$taille = filesize($upload['tmp_name']);
+$imageInfo = getimagesize($upload['tmp_name']);
+$mimeType = (new finfo(FILEINFO_MIME_TYPE))->file($upload['tmp_name']);
+$extensionsByMime = [
+    'image/jpeg' => '.jpg',
+    'image/png' => '.png',
+    'image/gif' => '.gif',
+    'image/bmp' => '.bmp',
+];
+if ($taille === false || $taille === 0 || $taille > 1048576) {
+    http_response_code(400);
+    exit(uag_escape(ImageGros));
+}
+if ($imageInfo === false
+    || !isset($extensionsByMime[$mimeType])
+    || $imageInfo['mime'] !== $mimeType
+    || $imageInfo[0] > 10000
+    || $imageInfo[1] > 10000
+    || $imageInfo[0] * $imageInfo[1] > 40000000) {
+    http_response_code(400);
+    exit(uag_escape(ImageUpload));
+}
+
 $dossier = '../images/';
-$fichier = basename($_FILES['avatar']['name']);
+$fichier = basename(is_string($upload['name'] ?? null) ? $upload['name'] : 'image');
 $taille_maxi = 1048576;
-$taille = filesize($_FILES['avatar']['tmp_name']);
-$extensions = array('.png', '.gif', '.jpg', '.bmp', '.svg', '.jpeg', '.PNG', '.GIF', '.JPG', '.BMP', '.SVG', '.JPEG');
-$extension = strrchr($_FILES['avatar']['name'], '.'); 
+$extensions = array('.png', '.gif', '.jpg', '.bmp');
+$extension = $extensionsByMime[$mimeType];
 if(!in_array($extension, $extensions)) 
 {
      echo '<meta http-equiv="Refresh" content="2; url=index2.php?page=images" />';
@@ -1792,7 +1735,7 @@ if(!isset($erreur))
           'ÀÁÂÃÄÅÇ&egrave;&eacute;Ê&euml;ÌÍÎ&iuml;ÒÓ&ocirc;ÕÖÙÚÛÜÝàáâãäåç&egrave;&eacute;ê&euml;ìíî&iuml;ðòó&ocirc;õöùúûüýÿ', 
           'AAAAAACEEEEIIIIOOOOOUUUUYaaaaaaceeeeiiiioooooouuuuyy');
      $fichier = preg_replace('/([^.a-z0-9]+)/i', '-', $fichier);
-     if(move_uploaded_file($_FILES['avatar']['tmp_name'], $dossier . uniqid()  . $extension)) 
+     if(move_uploaded_file($upload['tmp_name'], $dossier . bin2hex(random_bytes(16)) . $extension))
      {
 echo '<meta http-equiv="Refresh" content="2; url=index2.php?page=images" />';
 echo '

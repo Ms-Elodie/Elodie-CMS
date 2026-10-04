@@ -1,260 +1,173 @@
 <?php
 
-/******************************************************
+require_once __DIR__ . '/admin/security.php';
+uag_start_session();
 
-# *** LICENCE ***
-# Ce fichier fait partie de UAG CMS
-# http://julien-et-nel.be/UAG/
-#
-# 2012 Jonathan Julien Soulignac <julien-soulignac@live.fr>
-#
-# UAG CMS est un script libre, vous pouvez le redistribuer sous les termes de la 
-# License Libre de Diffusion Gratuite Paternité V1 : http://julien-et-nel.be/LLDGP1/ .
-#
-# En outre, tous les distributeurs de versions non officielles DOIT avertir 
-# l'utilisateur final de celui-ci, par tout moyen visible avant le téléchargement.
-# *** LICENCE ***
+if (uag_is_installed()) {
+    http_response_code(404);
+    exit('Installation déjà effectuée.');
+}
 
-******************************************************/
+$languages = ['fr', 'en', 'es', 'nl'];
+$values = [
+    'title' => '',
+    'language' => 'fr',
+    'author' => '',
+    'comments' => 'off',
+    'pagination' => 'on',
+    'site_url' => '',
+    'login' => '',
+    'password' => '',
+    'rewriting' => 'on2',
+    'admin_link' => 'off',
+    'date_format' => 'on',
+];
+$errors = [];
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    uag_require_valid_csrf_token();
+
+    foreach ($values as $key => $default) {
+        if ($key === 'password') {
+            continue;
+        }
+        $posted = $_POST[$key] ?? $default;
+        if (!is_string($posted)) {
+            $errors[] = 'Les données du formulaire sont invalides.';
+            continue;
+        }
+        $values[$key] = trim($posted);
+    }
+    $password = $_POST['password'] ?? null;
+    if (!is_string($password)) {
+        $errors[] = 'Le mot de passe est invalide.';
+        $password = '';
+    }
+
+    if (!in_array($values['language'], $languages, true)) {
+        $errors[] = 'La langue sélectionnée est invalide.';
+    }
+    if (!in_array($values['pagination'], ['on', 'off'], true)
+        || !in_array($values['rewriting'], ['on', 'on2', 'off'], true)
+        || !in_array($values['admin_link'], ['on', 'off'], true)
+        || !in_array($values['comments'], ['on', 'off'], true)
+        || !in_array($values['date_format'], ['on', 'off'], true)) {
+        $errors[] = 'Une option de configuration est invalide.';
+    }
+    if ($values['title'] === '' || strlen($values['title']) > 480
+        || $values['author'] === '' || strlen($values['author']) > 480
+        || $values['login'] === '' || strlen($values['login']) > 480) {
+        $errors[] = 'Le titre, le nom du responsable et le login sont obligatoires (120 caractères maximum).';
+    }
+    if (strlen($password) < 12 || strlen($password) > 72) {
+        $errors[] = 'Le mot de passe doit contenir entre 12 et 72 octets.';
+    }
+
+    $siteUrl = $values['site_url'];
+    $siteParts = parse_url($siteUrl);
+    if (!filter_var($siteUrl, FILTER_VALIDATE_URL)
+        || !is_array($siteParts)
+        || !in_array($siteParts['scheme'] ?? '', ['http', 'https'], true)
+        || empty($siteParts['host'])
+        || isset($siteParts['user'])
+        || isset($siteParts['pass'])
+        || isset($siteParts['query'])
+        || isset($siteParts['fragment'])) {
+        $errors[] = 'L’adresse du site doit être une URL HTTP ou HTTPS valide.';
+    }
+
+    if ($errors === []) {
+        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+        $settings = array_fill(0, 32, '');
+        $settings[0] = htmlentities($values['title'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $settings[1] = $values['language'];
+        $settings[2] = htmlentities($values['author'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $settings[3] = $values['comments'];
+        $settings[4] = $values['pagination'];
+        $settings[5] = rtrim($siteUrl, '/');
+        $settings[6] = htmlentities($values['login'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $settings[7] = $passwordHash;
+        $settings[8] = $values['rewriting'];
+        $settings[9] = $values['admin_link'];
+        $settings[10] = $values['date_format'];
+        $encodedSettings = array_map('base64_encode', $settings);
+        $encodedSettings[] = '';
+        uag_write_encoded_configuration($encodedSettings);
+
+        header('Location: index.php');
+        exit();
+    }
+} else {
+    $serverName = $_SERVER['SERVER_NAME'] ?? 'localhost';
+    if (!is_string($serverName) || !preg_match('/^[a-zA-Z0-9.-]+$/', $serverName)) {
+        $serverName = 'localhost';
+    }
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $values['site_url'] = $scheme . '://' . $serverName;
+}
 ?>
-
-<title>UAG CMS : Installation du CMS</title>
-
-<style type="text/css">body {margin: 0; } #titre {font-weight: 400;text-align:center;color: #777777;font-size: 20px;width:600px;} #retour a:hover {font-weight: bold;} a {color: #777777;text-decoration: none;} #retour {box-shadow: rgba(200, 200, 200, 0.702) 0px 4px 10px -1px;border: 1px solid #E5E5E5;background: #FFFFFF;font-weight: 400;padding: 24px 24px 24px;text-align:center;color: #777777;font-size: 12px;width:600px;} #page { margin: auto; width: 600px;} #UAG{text-align:center;font-size: 9px;color: #666666;}#Ok input{color: black;font-weight: 700;background: #DDDDDD !important;border:1px solid #2E83D9;font-size: 14px;} #login form {box-shadow: rgba(200, 200, 200, 0.702) 0px 4px 10px -1px;border: 1px solid #E5E5E5;background: #FFFFFF;font-weight: 400;padding: 0px 24px 24px;text-align:center;color: #777777;font-size: 14px;width:600px;} #login input { box-shadow: inset 1px 1px 2px rgba(200, 200, 200, 0.196);border:1px solid #BBBBBB;background: #F5F5F5; }</style>
-
-<?php
-error_reporting(0); 
-require 'admin/fonctions.php';
-
-function lire_array($fichier)
-{
-if (file_exists($fichier))
-{
-$contents = file_get_contents('admin/configuration.txt');
-$tableau=array();
-$tableau=explode("-",$contents);// transformation des données en array
-return $tableau;
-}
-else echo 'Fichier  '.$fichier.' non trouvé (lecture)';
-}
-
-if ($_GET['page']=='2') {  
-
-/******************************************/
-function ajout($fichier,$ajout)
-{
-			$fichier;
-	// Ouvrir le fichier en écriture
-	if (file_exists($fichier)) { 
- 		 $inF = fopen('admin/configuration.txt',"a"); //Mode Append	=> ajout	 
- 	}else{
- 		 $inF = fopen('admin/configuration.txt',"w"); // Le créer si introuvable
- 	}
-  fputs($inF,$ajout."-");
-  fclose($inF);
-}
-
-	 if ($_GET['lang']=='fr') {   
- 	 include('lang/fr-lang.php'); 
-  	 }  
-  	  
-  	 else if ($_GET['lang']=='en') {   
- 	 include('lang/en-lang.php'); 
-  	 } 
-
-	 else if ($_GET['lang']=='es') {   
- 	 include('lang/es-lang.php'); 
-  	 } 
-
-	 else if ($_GET['lang']=='nl') {   
- 	 include('lang/nl-lang.php'); 
-  	 } 
-  	  
-  	 else {                       
-  	 include('lang/fr-lang.php') ;
-	 }
-
-echo '<div id="page"><br/><div id="login"><form action="install.php?page=3&" method="post">';
-
-$test01=substr(decoct(fileperms("admin/configuration.txt")),3);
-$test02=substr(decoct(fileperms("images")),2);
-$test03=substr(decoct(fileperms("news.php")),3);
-
-echo '<div id="titre"><p>Installation de UAG CMS</p></div><p>'.CHMODCORRECT2.'</p>'.CHMODCORRECT.' :   <b>admin/configuration.txt [ ';
-
-if ($test01=='666') { echo ''.OUI.''; } else {echo''.NON.'';};
-
-echo' ]</b> - <b>Images [ ';
-
-if ($test02=='777') { echo ''.OUI.''; } else {echo''.NON.'';};
-
-echo' ] </b> - <b>News.php [ ';
-
-if ($test03=='666') { echo ''.OUI.''; } else {echo''.NON.'';};
-
-echo' ] </b><br/><center><table>';
-
-echo '<tr><td class="titre"></br>'.Titre.'  &nbsp;</td><td></br><input type="text" name="0" value="'.$tableau[0].'" STYLE="width:180px;" /></td></tr><tr>';
-
-if ($_GET['lang']=='') {   
-echo'<td class="titre"></br>'.Langue.'  &nbsp;</td><td></br><input type="text" name="1" value="fr" STYLE="width:180px;" readonly="readonly" /></td></tr><tr>'; 	 
-  	 }
-
-else {
-echo'<td class="titre"></br>'.Langue.'  &nbsp;</td><td></br><input type="text" name="1" value="'.$_GET['lang'].'" STYLE="width:180px;" readonly="readonly" /></td></tr><tr>';
-
-	 }
-
-
-echo '
-<td class="titre"></br>'.Gerant.'  &nbsp;</td><td></br><input type="text" required name="2" value="'.$tableau[2].'" STYLE="width:180px;"/></td></tr><tr>
-
-<td class="titre"></br>DISQUS  &nbsp;</td><td></br><input type="text" name="3" value="'.$tableau[3].'" STYLE="width:180px;"/></td></tr><tr>
-
-<td class="titre"></br>'.Pagination.'  &nbsp;</td><td></br><SELECT value="'.base64_decode($tableau[4]).'" name="4" STYLE="width:180px;">
-<option value="on" '.$paginationOn.'>'.Pagingi.'</option>
-<option value="off" '.$paginationOff.'>'.Pagingii.'</option>
-</select></td></tr><tr>
-
-<td class="titre"></br>Adresse site  &nbsp;</td><td></br>'; 
-
-$lien = 'http://'.$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF'];
-$lien = str_replace('/install.php', '', $lien);
-
-$filehtaccess = '.htaccess';
-$current = file_get_contents($filehtaccess);
-$current = "ErrorDocument 404 $lien/index.php?module=erreurs
-ErrorDocument 403 $lien/index.php?module=erreurs
-
-Options +FollowSymlinks
-RewriteEngine on
-
-RewriteRule ^article-([0-9]+)\.php$   index.php?module=articles&page=$1 [L]
-RewriteRule ^([0-9]+)-([a-z0-9\-]+)\.php$   index.php?module=articles&page=$1 [L]
-
-RewriteRule ^article-([0-9]+)\.php$   index2.php?module=articles&page=$1 [L]
-RewriteRule ^([0-9]+)-([a-z0-9\-]+)\.php$   index2.php?module=articles&page=$1 [L]
-
-RewriteRule ^feed$   rss.php [L]
-
-<files .htaccess>
-order allow,deny
-deny from all
- </files>
-
- Options -Indexes
-
- AddDefaultCharset UTF-8
- 
- ";
-// Écrit le résultat dans le fichier
-file_put_contents($filehtaccess, $current);
-
-echo '
-
-<input type="text" required name="5" readonly="readonly" value="'.$lien.'" placeholder="Adresse de votre site" STYLE="width:180px;"/>
-
-</td>'; 
-
-echo '</tr><tr>
-
-<td class="titre"></br>'.Login.'  &nbsp;</td><td></br><input type="text" required name="6" value="'.$tableau[6].'" STYLE="width:180px;"/></td></tr><tr>
-
-<td class="titre"></br>'.Code.'  &nbsp;</td><td></br><input type="password" required name="7" value="'.$tableau[7].'" STYLE="width:180px;"/></td></tr>
-
-<tr>
-<td class="titre"></br>URL Rewriting  &nbsp;</td><td></br><SELECT value="'.$tableau[8].'" name="8" STYLE="width:180px;">
-<OPTION VALUE="on">'.urli.'</OPTION>
-<OPTION VALUE="on2" selected="selected">'.urlii.'</OPTION>
-<OPTION VALUE="off">'.urliii.'</OPTION>
-</SELECT></td></tr>';echo "\n";
-
-echo '<tr>
-<td class="titre"></br>'.LienAdmin.'  &nbsp;</td><td></br><SELECT value="'.$tableau[9].'" name="9" STYLE="width:180px;">
-		<OPTION VALUE="on">'.urliiii.'</OPTION>
-		<OPTION VALUE="off" selected="selected">'.urliiiii.'</OPTION>
-	</SELECT></td></tr>';echo "\n";
-
-echo '<tr>
-<td class="titre"></br>Date  &nbsp;</td><td></br><SELECT value="'.$tableau[10].'" name="10" STYLE="width:180px;">
-		<OPTION VALUE="on">'.Lettre.'</OPTION>
-		<OPTION VALUE="off">'.Chiffre.'</OPTION>
-	</SELECT></td></tr>';echo "\n";
-
-echo '</table></center></br>';echo "\n";
-echo'<div id="Ok"><input class="submit" type="submit" value="'.Ok.'" name="submit"/></div></form></div></div>';  
-
-  	 } 
-
-
-if ($_GET['page']=='3') { 
-
-/******************************************/
-function ajout($fichier,$ajout)
-{
-			$fichier;
-	// Ouvrir le fichier en écriture
-	if (file_exists($fichier)) { 
- 		 $inF = fopen('admin/configuration.txt',"a"); //Mode Append	=> ajout	 
- 	}else{
- 		 $inF = fopen('admin/configuration.txt',"w"); // Le créer si introuvable
- 	}
-  fputs($inF,$ajout."-");
-  fclose($inF);
-}
-
-include('lang/'.$_GET['lang'].'-lang.php');
-
-echo'<meta http-equiv="refresh" content="1; URL=index.php">
-<p style="color:green">'.Install.'</p>';
-
-// Fichier de transition pour écupérer les données du formulaire
-
- 	 $f=fopen('admin/configuration.txt',"w");fclose($f); // on efface le fichier, on le crée à nouveau (vide)
-	 
-$salt = 'BwGk15l8WX'; 
-
-$valideforma = array( '0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','31');
-
-foreach ($valideforma as $valideforma1) { $_POST[$valideforma1] = str_replace(array('-','php'),array('-',''), $_POST[$valideforma1]); };
-
-$valideformb = array( '0','1','2','3','4','5','6');
-
-foreach ($valideformb as $valideformb1) { ajout('admin/configuration.txt',trim(base64_encode(stripslashes((htmlentities($_POST[$valideformb1],null,'UTF-8')))))); };
-
-ajout('admin/configuration.txt',trim(base64_encode(stripslashes((sha1($_POST[7].$salt))))));	
-
-$valideformc = array( '8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','31');
-
-foreach ($valideformc as $valideformc1) { ajout('admin/configuration.txt',trim(base64_encode(stripslashes((htmlentities($_POST[$valideformc1],null,'UTF-8')))))); };
-
-  	 } 
-
-
-else {
-
-/******************************************/
-function ajout($fichier,$ajout)
-{
-			$fichier;
-	// Ouvrir le fichier en écriture
-	if (file_exists($fichier)) { 
- 		 $inF = fopen('admin/configuration.txt',"a"); //Mode Append	=> ajout	 
- 	}else{
- 		 $inF = fopen('admin/configuration.txt',"w"); // Le créer si introuvable
- 	}
-  fputs($inF,$ajout."-");
-  fclose($inF);
-}
-  
-echo '<div id="page"><br/><div id="login"><form>';
-echo '<div id="titre">Installation de UAG CMS</div><br/>LANGUAGE : <b> <a href="install.php?page=2&lang=en">English<a> - <a href="install.php?page=2&lang=es">Espanol</a> - <a href="install.php?page=2&lang=fr">Francais</a> - <a href="install.php?page=2&lang=nl">Nederlands</a></b><br/><center>';
-
-
-echo '</center></br>';echo "\n";
-echo'<div id="Ok"></div></form></div></div>'; 
-
-}
-
-?>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Installation de Elodie CMS</title>
+    <style>
+        body { color: #444; font: 16px sans-serif; margin: 2rem auto; max-width: 42rem; padding: 0 1rem; }
+        label { display: block; margin-top: 1rem; }
+        input, select { box-sizing: border-box; max-width: 100%; padding: .5rem; width: 100%; }
+        .error { color: #a00; }
+    </style>
+</head>
+<body>
+    <h1>Installation de Elodie CMS</h1>
+    <?php foreach ($errors as $error): ?>
+        <p class="error"><?= uag_escape($error) ?></p>
+    <?php endforeach; ?>
+    <form method="post" action="install.php">
+        <?= uag_csrf_input() ?>
+        <label for="title">Titre du site</label>
+        <input id="title" name="title" maxlength="120" required value="<?= uag_escape($values['title']) ?>">
+        <label for="language">Langue</label>
+        <select id="language" name="language">
+            <?php foreach ($languages as $language): ?>
+                <option value="<?= uag_escape($language) ?>" <?= $values['language'] === $language ? 'selected' : '' ?>><?= uag_escape($language) ?></option>
+            <?php endforeach; ?>
+        </select>
+        <label for="author">Responsable</label>
+        <input id="author" name="author" maxlength="120" required value="<?= uag_escape($values['author']) ?>">
+        <label for="comments">Commentaires internes</label>
+        <select id="comments" name="comments">
+            <option value="off" <?= $values['comments'] === 'off' ? 'selected' : '' ?>>Désactivés</option>
+            <option value="on" <?= $values['comments'] === 'on' ? 'selected' : '' ?>>Activés</option>
+        </select>
+        <label for="pagination">Pagination</label>
+        <select id="pagination" name="pagination">
+            <option value="on" <?= $values['pagination'] === 'on' ? 'selected' : '' ?>>Activée</option>
+            <option value="off" <?= $values['pagination'] === 'off' ? 'selected' : '' ?>>Désactivée</option>
+        </select>
+        <label for="site_url">Adresse du site</label>
+        <input id="site_url" name="site_url" type="url" required value="<?= uag_escape($values['site_url']) ?>">
+        <label for="login">Login administrateur</label>
+        <input id="login" name="login" maxlength="120" required autocomplete="username" value="<?= uag_escape($values['login']) ?>">
+        <label for="password">Mot de passe (12 à 72 octets)</label>
+        <input id="password" name="password" type="password" minlength="12" maxlength="72" required autocomplete="new-password">
+        <label for="rewriting">Réécriture des URL</label>
+        <select id="rewriting" name="rewriting">
+            <option value="on2" <?= $values['rewriting'] === 'on2' ? 'selected' : '' ?>>Activée</option>
+            <option value="off" <?= $values['rewriting'] === 'off' ? 'selected' : '' ?>>Désactivée</option>
+        </select>
+        <label for="admin_link">Lien vers l’administration</label>
+        <select id="admin_link" name="admin_link">
+            <option value="on" <?= $values['admin_link'] === 'on' ? 'selected' : '' ?>>Visible</option>
+            <option value="off" <?= $values['admin_link'] === 'off' ? 'selected' : '' ?>>Masqué</option>
+        </select>
+        <label for="date_format">Format de date</label>
+        <select id="date_format" name="date_format">
+            <option value="on" <?= $values['date_format'] === 'on' ? 'selected' : '' ?>>Littéral</option>
+            <option value="off" <?= $values['date_format'] === 'off' ? 'selected' : '' ?>>Numérique</option>
+        </select>
+        <p><button type="submit">Installer</button></p>
+    </form>
+</body>
+</html>
