@@ -52,7 +52,7 @@ function elodie_cms_database(): PDO
         )'
     );
     $database->exec(
-        'CREATE TABLE IF NOT EXISTS articles (
+        "CREATE TABLE IF NOT EXISTS articles (
             id INTEGER PRIMARY KEY,
             title TEXT NOT NULL,
             day TEXT NOT NULL,
@@ -62,7 +62,7 @@ function elodie_cms_database(): PDO
             excerpt TEXT NOT NULL,
             rating TEXT NOT NULL,
             content_format TEXT NOT NULL DEFAULT 'visual'
-        )'
+        )"
     );
     $articleColumns = $database->query('PRAGMA table_info(articles)')->fetchAll();
     $hasContentFormat = false;
