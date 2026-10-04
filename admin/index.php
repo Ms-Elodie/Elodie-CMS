@@ -9,6 +9,7 @@ if (!elodie_cms_is_installed()) {
 require __DIR__ . '/verif.php';
 include __DIR__ . '/langues.php';
 require __DIR__ . '/fonctions.php';
+require __DIR__ . '/pages.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     elodie_cms_require_valid_csrf_token();
@@ -23,6 +24,10 @@ $pageTitles = [
     'editer' => Editer,
     'images' => Images,
     'configuration' => Configuration,
+    'theme' => elodie_cms_ui('theme_title'),
+    'pages' => elodie_cms_ui('pages_title'),
+    'page-new' => elodie_cms_ui('page_new'),
+    'page-edit' => elodie_cms_ui('page_edit'),
     'supprimer' => Articles,
     'upload' => Images,
     'delete' => Images,
@@ -36,9 +41,20 @@ if ($page === 'editer'
     header('Location: index.php?page=liste');
     exit();
 }
-if ($page === 'configuration' && $_SERVER['REQUEST_METHOD'] === 'POST'
+if ($page === 'page-edit'
+    && (!is_string($_GET['id'] ?? null) || !ctype_digit($_GET['id']))) {
+    header('Location: index.php?page=pages');
+    exit();
+}
+if (in_array($page, ['configuration', 'theme'], true) && $_SERVER['REQUEST_METHOD'] === 'POST'
     && ($_GET['id'] ?? '') === '2') {
-    configuration();
+    if ($page === 'configuration') {
+        configuration();
+        exit();
+    }
+}
+if ($page === 'theme' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    theme_configuration();
     exit();
 }
 
@@ -46,6 +62,7 @@ $pageTitle = $pageTitles[$page];
 $activePage = match ($page) {
     'supprimer' => 'liste',
     'upload', 'delete' => 'images',
+    'page-new', 'page-edit' => 'pages',
     default => $page,
 };
 ?>
@@ -58,6 +75,8 @@ $activePage = match ($page) {
     <title><?= elodie_cms_escape((string) $pageTitle) ?> - Elodie CMS</title>
     <link rel="stylesheet" href="mobile.css">
     <script src="js/article-editor.js" defer></script>
+    <script src="js/menu-editor.js" defer></script>
+    <script src="js/theme-editor.js" defer></script>
 </head>
 <body class="admin">
     <?php include __DIR__ . '/includes/topbar.php'; ?>
@@ -69,7 +88,7 @@ $activePage = match ($page) {
                 <h1><?= elodie_cms_escape((string) $pageTitle) ?></h1>
             </div>
             <section class="admin-content">
-                <?php if ($page === 'configuration' && ($_GET['saved'] ?? '') === '1'): ?>
+                <?php if (in_array($page, ['configuration', 'theme', 'pages'], true) && ($_GET['saved'] ?? '') === '1'): ?>
                     <p class="admin-notice" role="status"><?= elodie_cms_escape(elodie_cms_ui('settings_saved')) ?></p>
                 <?php endif; ?>
                 <?php
@@ -98,6 +117,14 @@ $activePage = match ($page) {
                         break;
                     case 'configuration':
                         configuration();
+                        break;
+                    case 'theme':
+                        theme_configuration();
+                        break;
+                    case 'pages':
+                    case 'page-new':
+                    case 'page-edit':
+                        elodie_cms_admin_pages();
                         break;
                     default:
                         accueil();

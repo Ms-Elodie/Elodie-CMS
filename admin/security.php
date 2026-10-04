@@ -317,6 +317,58 @@ function elodie_cms_valid_article_date(string $year, string $month, string $day)
         && checkdate((int) $month, (int) $day, $yearValue);
 }
 
+function elodie_cms_reencode_uploaded_image(string $sourcePath, string $mimeType): ?array
+{
+    $imageData = file_get_contents($sourcePath);
+    if ($imageData === false) {
+        throw new RuntimeException('Impossible de lire l’image envoyée.');
+    }
+    $image = @imagecreatefromstring($imageData);
+    if (!$image instanceof GdImage) {
+        return null;
+    }
+
+    $outputFormat = match ($mimeType) {
+        'image/jpeg' => ['jpg', 'jpeg'],
+        'image/png', 'image/bmp' => ['png', 'png'],
+        'image/gif' => ['gif', 'gif'],
+        default => null,
+    };
+    if ($outputFormat === null) {
+        imagedestroy($image);
+        return null;
+    }
+
+    $temporaryPath = tempnam(sys_get_temp_dir(), 'elodie-image-');
+    if ($temporaryPath === false) {
+        imagedestroy($image);
+        throw new RuntimeException('Impossible de préparer le traitement de l’image.');
+    }
+
+    $written = match ($outputFormat[1]) {
+        'jpeg' => imagejpeg($image, $temporaryPath, 90),
+        'gif' => imagegif($image, $temporaryPath),
+        default => imagepng($image, $temporaryPath, 6),
+    };
+    imagedestroy($image);
+    if (!$written) {
+        unlink($temporaryPath);
+        throw new RuntimeException('Impossible de réencoder l’image envoyée.');
+    }
+
+    return ['path' => $temporaryPath, 'extension' => $outputFormat[0]];
+}
+
+function elodie_cms_article_date_parts(string $date): ?array
+{
+    if (!preg_match('/\A(\d{4})-(\d{2})-(\d{2})\z/', $date, $matches)
+        || !elodie_cms_valid_article_date($matches[1], $matches[2], $matches[3])) {
+        return null;
+    }
+
+    return ['year' => $matches[1], 'month' => $matches[2], 'day' => $matches[3]];
+}
+
 function elodie_cms_valid_http_url(string $url): bool
 {
     $parts = parse_url($url);
@@ -341,6 +393,15 @@ function elodie_cms_valid_url_setting(string $url): bool
     return !preg_match('/[\x00-\x20\\\\]/', $url)
         && !preg_match('/^[a-z][a-z0-9+.-]*:/i', $url)
         && !str_starts_with($url, '//');
+}
+
+function elodie_cms_valid_menu_url(string $url): bool
+{
+    if (preg_match('/\Amailto:/i', $url)) {
+        return filter_var(substr($url, 7), FILTER_VALIDATE_EMAIL) !== false;
+    }
+
+    return elodie_cms_valid_url_setting($url);
 }
 
 function elodie_cms_sanitize_article_html(string $html): string

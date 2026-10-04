@@ -75,7 +75,6 @@ define('Menua', 'Add additional menus');
 define('Jour', 'Day');
 define('Mois', 'Month');
 define('Annee', 'Year');
-define('Monde', 'Mundo');
 
 define('Nota', '(If you want to add a score with your article rating on video games, manga, movies ... )');
 
@@ -87,9 +86,6 @@ define('Nom', 'Last Name');
 define('Datedenaissance', 'Date of birth');
 define('Paysa', 'Country');
 define('Photo', 'Photo');
-define('Twitter', 'Twitter');
-define('Facebook', 'Facebook');
-define('Googleplus', 'Google +');
 define('Activite', 'Activity');
 define('Biographie', 'Biography');
 define('Loisirsa', 'Interests');
@@ -97,9 +93,6 @@ define('Loisirsa', 'Interests');
 define('Prenoma', 'Your first Name');
 define('Noma', 'Your Last Name');
 define('Photoa', 'A photo of you');
-define('Twittera', 'Your Twitter account');
-define('Facebooka', 'Your Facebook account');
-define('Googleplusa', 'Your Google + account');
 define('Activitea', 'Programmer, Merchant, etc');
 define('Biographiea', 'Few words about yourself');
 define('Loisirsaa', 'Video Games, Manga, Etc');
@@ -112,7 +105,6 @@ define('Urlb', 'URL of your site');
 define('Loginb', 'Your login name');
 
 define('Banniere', 'Banner');
-define('Menu', 'Menu');
 
 define('Titrec', 'Title');
 define('Lienc', 'Link');

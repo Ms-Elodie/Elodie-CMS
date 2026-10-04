@@ -42,6 +42,23 @@ $authorName = trim(
 $authorActivity = base64_decode($settings[19] ?? '', true);
 $authorBio = base64_decode($settings[20] ?? '', true);
 $authorInterests = base64_decode($settings[21] ?? '', true);
+$themeSettings = elodie_cms_read_theme_settings();
+elodie_cms_ensure_default_about_page();
+$customPages = elodie_cms_read_pages();
+$menuItems = elodie_cms_read_menu_items();
+$description = trim($themeSettings['description']);
+$themeColors = [];
+foreach ([
+    'brand_color' => '#264a68',
+    'accent_color' => '#bf6c45',
+    'page_color' => '#f4f6f8',
+    'text_color' => '#202b38',
+] as $key => $defaultColor) {
+    $color = $themeSettings[$key] ?? '';
+    $themeColors[$key] = is_string($color) && preg_match('/\A#[0-9a-fA-F]{6}\z/', $color)
+        ? $color
+        : $defaultColor;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['comment_submit'] ?? '') === '1') {
     if (!elodie_cms_comments_enabled()) {
@@ -81,6 +98,7 @@ $page = is_string($requestedPage) && ctype_digit($requestedPage)
     : 1;
 $article = null;
 $articlePage = null;
+$standalonePage = null;
 
 if ($module === 'articles' && $allArticles !== []) {
     $articleId = public_article_id($allArticles);
@@ -88,6 +106,12 @@ if ($module === 'articles' && $allArticles !== []) {
         $article = $allArticles[$articleId];
         $articlePage = array_search($articleId, $articleIds, true);
         $articlePage = $articlePage === false ? null : $articlePage + 1;
+    }
+}
+if ($module === 'about' || $module === 'page') {
+    $slug = $module === 'about' ? 'about' : ($_GET['slug'] ?? '');
+    if (is_string($slug) && preg_match('/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/', $slug)) {
+        $standalonePage = elodie_cms_find_page($slug);
     }
 }
 
@@ -101,8 +125,8 @@ $archiveItems = array_slice($newestFirst, ($archivePage - 1) * $postsPerPage, $p
 $pageTitle = $siteName;
 if ($article !== null) {
     $pageTitle = elodie_cms_escape_legacy_text($article['titre']) . ' - ' . $siteName;
-} elseif ($module === 'about') {
-    $pageTitle = elodie_cms_ui('about') . ' - ' . $siteName;
+} elseif ($standalonePage !== null) {
+    $pageTitle = $standalonePage['title'] . ' - ' . $siteName;
 }
 
 function elodie_cms_blog_date(array $article, string $language): string
@@ -161,7 +185,7 @@ function elodie_cms_article_excerpt(array $article): string
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="generator" content="Elodie CMS <?= elodie_cms_escape(elodie_cms_version()) ?>">
-    <meta name="description" content="<?= elodie_cms_escape($siteName) ?>">
+    <meta name="description" content="<?= elodie_cms_escape($description !== '' ? $description : $siteName) ?>">
     <title><?= elodie_cms_escape($pageTitle) ?></title>
     <link rel="alternate" type="application/rss+xml" title="<?= elodie_cms_escape(elodie_cms_ui('rss')) ?>" href="rss.php">
     <?php if ($faviconUrl !== ''): ?>
@@ -169,7 +193,7 @@ function elodie_cms_article_excerpt(array $article): string
     <?php endif; ?>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="blog-site"<?= $backgroundUrl !== '' ? ' style="--site-wallpaper: url(&quot;' . elodie_cms_escape($backgroundUrl) . '&quot;)"' : '' ?>>
+<body class="blog-site" style="--brand: <?= elodie_cms_escape($themeColors['brand_color']) ?>; --brand-dark: <?= elodie_cms_escape($themeColors['brand_color']) ?>; --accent: <?= elodie_cms_escape($themeColors['accent_color']) ?>; --page: <?= elodie_cms_escape($themeColors['page_color']) ?>; --ink: <?= elodie_cms_escape($themeColors['text_color']) ?>;<?= $backgroundUrl !== '' ? ' --site-wallpaper: url(&quot;' . elodie_cms_escape(str_replace('"', '%22', $backgroundUrl)) . '&quot;);' : '' ?>">
     <div class="site-shell">
         <header class="site-header">
             <a class="site-brand" href="index2.php">
@@ -178,12 +202,36 @@ function elodie_cms_article_excerpt(array $article): string
                 <?php else: ?>
                     <span class="site-brand-name"><?= elodie_cms_escape($siteName) ?></span>
                 <?php endif; ?>
-                <span class="site-brand-tagline"><?= elodie_cms_escape(elodie_cms_ui('blog_tagline')) ?></span>
+                <?php if ($description !== ''): ?>
+                    <span class="site-brand-tagline"><?= elodie_cms_escape($description) ?></span>
+                <?php else: ?>
+                    <span class="site-brand-tagline"><?= elodie_cms_escape(elodie_cms_ui('blog_tagline')) ?></span>
+                <?php endif; ?>
             </a>
             <nav class="site-nav" aria-label="<?= elodie_cms_escape(elodie_cms_ui('main_navigation')) ?>">
                 <a href="index2.php"<?= $module === 'home' ? ' aria-current="page"' : '' ?>><?= elodie_cms_escape(elodie_cms_ui('home')) ?></a>
-                <a href="index2.php?module=about"<?= $module === 'about' ? ' aria-current="page"' : '' ?>><?= elodie_cms_escape(elodie_cms_ui('about')) ?></a>
-                <a href="rss.php"><?= elodie_cms_escape(elodie_cms_ui('rss')) ?></a>
+                <?php foreach ($menuItems as $menuItem): ?>
+                    <?php
+                    $menuHref = null;
+                    if ($menuItem['type'] === 'link') {
+                        $menuHref = $menuItem['target'];
+                    } elseif ($menuItem['type'] === 'article') {
+                        $position = array_search((int) $menuItem['target'], $articleIds, true);
+                        if ($position !== false) {
+                            $menuHref = 'index2.php?module=articles&page=' . ($position + 1);
+                        }
+                    } elseif ($menuItem['type'] === 'page' && elodie_cms_find_page($menuItem['target']) !== null) {
+                        $menuHref = $menuItem['target'] === 'about'
+                            ? 'index2.php?module=about'
+                            : 'index2.php?module=page&slug=' . rawurlencode($menuItem['target']);
+                    }
+                    ?>
+                    <?php if ($menuHref !== null): ?>
+                        <a href="<?= elodie_cms_escape($menuHref) ?>"<?= ($menuItem['type'] === 'page'
+                            && $standalonePage !== null && $standalonePage['slug'] === $menuItem['target'])
+                            ? ' aria-current="page"' : '' ?>><?= elodie_cms_escape($menuItem['label']) ?></a>
+                    <?php endif; ?>
+                <?php endforeach; ?>
                 <?php if (base64_decode($settings[9] ?? '', true) !== 'off'): ?>
                     <a href="admin/"><?= elodie_cms_escape(elodie_cms_ui('administration')) ?></a>
                 <?php endif; ?>
@@ -207,21 +255,20 @@ function elodie_cms_article_excerpt(array $article): string
                     <p class="post-back"><a href="index2.php">← <?= elodie_cms_escape(elodie_cms_ui('back_articles')) ?></a></p>
                 </article>
                 <?php comments(); ?>
-            <?php elseif ($module === 'about'): ?>
-                <section class="about-card">
-                    <p class="post-eyebrow"><?= elodie_cms_escape(elodie_cms_ui('about')) ?></p>
-                    <h1><?= elodie_cms_escape($authorName !== '' ? $authorName : $siteName) ?></h1>
-                    <?php if (is_string($authorActivity) && $authorActivity !== ''): ?>
-                        <p class="about-lead"><?= elodie_cms_escape_legacy_text($authorActivity) ?></p>
-                    <?php endif; ?>
-                    <?php if (is_string($authorBio) && $authorBio !== ''): ?>
-                        <p><?= elodie_cms_escape_legacy_text($authorBio) ?></p>
-                    <?php endif; ?>
-                    <?php if (is_string($authorInterests) && $authorInterests !== ''): ?>
-                        <p><strong><?= elodie_cms_escape(elodie_cms_ui('interests')) ?></strong> <?= elodie_cms_escape_legacy_text($authorInterests) ?></p>
-                    <?php endif; ?>
-                    <p><?= elodie_cms_escape(elodie_cms_ui('about_ai_1')) ?></p>
-                    <p><?= elodie_cms_escape(elodie_cms_ui('about_ai_2')) ?></p>
+            <?php elseif ($standalonePage !== null): ?>
+                <article class="post post-single">
+                    <p class="post-eyebrow"><?= elodie_cms_escape(elodie_cms_ui('pages_title')) ?></p>
+                    <h1><?= elodie_cms_escape($standalonePage['title']) ?></h1>
+                    <div class="post-content"><?= elodie_cms_render_article_content(
+                        $standalonePage['content'],
+                        $standalonePage['content_format']
+                    ) ?></div>
+                    <p class="post-back"><a href="index2.php"><?= elodie_cms_escape(elodie_cms_ui('back_home')) ?></a></p>
+                </article>
+            <?php elseif ($module === 'page' || $module === 'about'): ?>
+                <section class="empty-state">
+                    <h1><?= elodie_cms_escape(elodie_cms_ui('not_found')) ?></h1>
+                    <p><?= elodie_cms_escape(elodie_cms_ui('not_found_help')) ?></p>
                 </section>
             <?php elseif ($module === 'erreurs'): ?>
                 <section class="empty-state">

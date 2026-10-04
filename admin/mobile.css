@@ -249,6 +249,120 @@ iframe {
     max-width: 100%;
 }
 
+.admin .button-link {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    padding: .55rem .9rem;
+    border: 1px solid var(--admin-brand);
+    border-radius: .45rem;
+    background: var(--admin-brand);
+    color: #fff;
+    font-weight: 650;
+    text-decoration: none;
+}
+
+.admin .button-link:hover {
+    background: var(--admin-brand-dark);
+    color: #fff;
+}
+
+.article-date {
+    width: min(100%, 18rem);
+}
+
+.menu-editor,
+.theme-form,
+.page-form {
+    display: grid;
+    gap: 1rem;
+}
+
+.menu-editor h3 {
+    margin: 0;
+}
+
+.menu-editor > p,
+.theme-form > p {
+    margin: 0;
+    color: var(--admin-muted);
+}
+
+.menu-item {
+    display: grid;
+    gap: .75rem;
+    margin: 0 0 .75rem;
+    padding: .8rem;
+    border: 1px solid var(--admin-border);
+    border-radius: .5rem;
+}
+
+.menu-item legend,
+.theme-colors legend {
+    padding: 0 .3rem;
+    color: var(--admin-brand-dark);
+    font-weight: 700;
+}
+
+.menu-item-fields,
+.theme-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    gap: .8rem;
+}
+
+.menu-item-fields label,
+.theme-fields label {
+    display: grid;
+    align-content: start;
+    gap: .3rem;
+    font-weight: 650;
+}
+
+.menu-item-fields input,
+.menu-item-fields select,
+.theme-fields input,
+.theme-fields select,
+.theme-fields textarea {
+    width: 100%;
+}
+
+.theme-fields textarea {
+    min-height: 6rem;
+}
+
+.theme-fields input[type="color"] {
+    min-height: 3.25rem;
+    padding: .2rem;
+}
+
+.theme-colors {
+    display: grid;
+    gap: .7rem;
+    margin: 0;
+    padding: 1rem;
+    border: 1px solid var(--admin-border);
+    border-radius: .5rem;
+}
+
+.menu-item-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .45rem;
+}
+
+.menu-item-actions button:disabled,
+.menu-editor button:disabled {
+    cursor: not-allowed;
+    opacity: .55;
+}
+
+.theme-form small {
+    color: var(--admin-muted);
+    font-size: .82rem;
+    font-weight: 400;
+}
+
 .admin-notice {
     margin: 0 0 1rem;
     padding: .8rem 1rem;

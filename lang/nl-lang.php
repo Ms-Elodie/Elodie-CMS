@@ -75,7 +75,6 @@ define('Menua', 'Voeg extra menu\'s');
 define('Jour', 'Dag');
 define('Mois', 'Maand');
 define('Annee', 'Jaar');
-define('Monde', 'Wereld');
 
 define('Nota', '(Als u wilt een score toe te voegen met uw artikel rating op video games, manga, films ...)');
 
@@ -87,9 +86,6 @@ define('Nom', 'Achternaam');
 define('Datedenaissance', 'Geboortedatum');
 define('Paysa', 'Land');
 define('Photo', 'Foto');
-define('Twitter', 'Twitter');
-define('Facebook', 'Facebook');
-define('Googleplus', 'Google +');
 define('Activite', 'Bezigheid');
 define('Biographie', 'Biografie');
 define('Loisirsa', 'Interesses');
@@ -97,9 +93,6 @@ define('Loisirsa', 'Interesses');
 define('Prenoma', 'Uw voornaam');
 define('Noma', 'Uw achternaam');
 define('Photoa', 'Een foto van je');
-define('Twittera', 'Uw Twitter account');
-define('Facebooka', 'Uw Facebook account');
-define('Googleplusa', 'Uw Google + account');
 define('Activitea', 'Programmeur, Merchant, enz.');
 define('Biographiea', 'Paar woorden over jezelf');
 define('Loisirsaa', 'Video Games, Manga, Etc');
@@ -112,7 +105,6 @@ define('Urlb', 'URL van uw site');
 define('Loginb', 'Uw loginnaam');
 
 define('Banniere', 'Banier');
-define('Menu', 'Menu');
 
 define('Titrec', 'Titel');
 define('Lienc', 'Link');

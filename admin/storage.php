@@ -52,6 +52,31 @@ function elodie_cms_database(): PDO
         )'
     );
     $database->exec(
+        "CREATE TABLE IF NOT EXISTS menu_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            position INTEGER NOT NULL,
+            label TEXT NOT NULL,
+            item_type TEXT NOT NULL CHECK (item_type IN ('link', 'article', 'page')),
+            target TEXT NOT NULL
+        )"
+    );
+    $database->exec(
+        'CREATE TABLE IF NOT EXISTS theme_settings (
+            setting_key TEXT PRIMARY KEY,
+            setting_value TEXT NOT NULL
+        )'
+    );
+    $database->exec(
+        'CREATE TABLE IF NOT EXISTS pages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            slug TEXT NOT NULL UNIQUE,
+            title TEXT NOT NULL,
+            content TEXT NOT NULL,
+            content_format TEXT NOT NULL DEFAULT \'markdown\',
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $database->exec(
         "CREATE TABLE IF NOT EXISTS articles (
             id INTEGER PRIMARY KEY,
             title TEXT NOT NULL,
@@ -265,6 +290,216 @@ function elodie_cms_read_encoded_configuration(): array
     }
 
     return $configuration;
+}
+
+function elodie_cms_read_menu_items(): array
+{
+    $database = elodie_cms_database();
+    if (!$database->query('SELECT 1 FROM settings WHERE setting_key = -3')->fetchColumn()) {
+        $configuration = elodie_cms_read_encoded_configuration();
+        $legacyItems = [[
+            'label' => elodie_cms_ui('about'),
+            'type' => 'page',
+            'target' => 'about',
+        ]];
+        foreach ([[22, 23], [24, 25]] as [$labelIndex, $urlIndex]) {
+            $label = base64_decode($configuration[$labelIndex] ?? '', true);
+            $url = base64_decode($configuration[$urlIndex] ?? '', true);
+            if (is_string($label) && trim($label) !== ''
+                && is_string($url) && elodie_cms_valid_menu_url($url)) {
+                $legacyItems[] = [
+                    'label' => trim($label),
+                    'type' => 'link',
+                    'target' => $url,
+                ];
+            }
+        }
+        elodie_cms_save_menu_items($legacyItems);
+    }
+
+    return $database->query(
+        'SELECT label, item_type AS type, target FROM menu_items ORDER BY position ASC, id ASC'
+    )->fetchAll();
+}
+
+function elodie_cms_save_menu_items(array $items): void
+{
+    $database = elodie_cms_database();
+    $database->beginTransaction();
+    try {
+        $database->exec('DELETE FROM menu_items');
+        $statement = $database->prepare(
+            'INSERT INTO menu_items (position, label, item_type, target)
+             VALUES (:position, :label, :type, :target)'
+        );
+        foreach (array_values($items) as $position => $item) {
+            if (!is_array($item)
+                || !is_string($item['label'] ?? null)
+                || !is_string($item['type'] ?? null)
+                || !is_string($item['target'] ?? null)
+                || !in_array($item['type'], ['link', 'article', 'page'], true)) {
+                throw new InvalidArgumentException('Un élément du menu est invalide.');
+            }
+            $statement->execute([
+                'position' => $position,
+                'label' => $item['label'],
+                'type' => $item['type'],
+                'target' => $item['target'],
+            ]);
+        }
+        $marker = $database->prepare(
+            'INSERT INTO settings (setting_key, setting_value) VALUES (-3, :value)
+             ON CONFLICT(setting_key) DO UPDATE SET setting_value = excluded.setting_value'
+        );
+        $marker->execute(['value' => 'menu-configured']);
+        $database->commit();
+    } catch (Throwable $exception) {
+        if ($database->inTransaction()) {
+            $database->rollBack();
+        }
+        throw $exception;
+    }
+}
+
+function elodie_cms_read_theme_settings(): array
+{
+    $defaults = [
+        'description' => '',
+        'brand_color' => '#264a68',
+        'accent_color' => '#bf6c45',
+        'page_color' => '#f4f6f8',
+        'text_color' => '#202b38',
+    ];
+    $statement = elodie_cms_database()->query('SELECT setting_key, setting_value FROM theme_settings');
+    foreach ($statement as $row) {
+        if (array_key_exists($row['setting_key'], $defaults)) {
+            $defaults[$row['setting_key']] = $row['setting_value'];
+        }
+    }
+
+    return $defaults;
+}
+
+function elodie_cms_save_theme_settings(array $settings): void
+{
+    $statement = elodie_cms_database()->prepare(
+        'INSERT INTO theme_settings (setting_key, setting_value) VALUES (:key, :value)
+         ON CONFLICT(setting_key) DO UPDATE SET setting_value = excluded.setting_value'
+    );
+    foreach ($settings as $key => $value) {
+        if (!is_string($key) || !is_string($value)) {
+            throw new InvalidArgumentException('Les réglages du thème sont invalides.');
+        }
+        $statement->execute(['key' => $key, 'value' => $value]);
+    }
+}
+
+function elodie_cms_read_pages(): array
+{
+    return elodie_cms_database()->query(
+        'SELECT id, slug, title, content, content_format, updated_at FROM pages ORDER BY title COLLATE NOCASE ASC, id ASC'
+    )->fetchAll();
+}
+
+function elodie_cms_find_page(string $slug): ?array
+{
+    $statement = elodie_cms_database()->prepare(
+        'SELECT id, slug, title, content, content_format, updated_at FROM pages WHERE slug = :slug'
+    );
+    $statement->execute(['slug' => $slug]);
+    $page = $statement->fetch();
+
+    return is_array($page) ? $page : null;
+}
+
+function elodie_cms_save_page(?int $id, string $slug, string $title, string $content, string $format): int
+{
+    $database = elodie_cms_database();
+    if ($id === null) {
+        $statement = $database->prepare(
+            'INSERT INTO pages (slug, title, content, content_format, updated_at)
+             VALUES (:slug, :title, :content, :format, :updated_at)'
+        );
+        $statement->execute([
+            'slug' => $slug,
+            'title' => $title,
+            'content' => $content,
+            'format' => $format,
+            'updated_at' => gmdate('c'),
+        ]);
+        return (int) $database->lastInsertId();
+    }
+
+    $statement = $database->prepare(
+        'UPDATE pages SET slug = :slug, title = :title, content = :content,
+         content_format = :format, updated_at = :updated_at WHERE id = :id'
+    );
+    $statement->execute([
+        'id' => $id,
+        'slug' => $slug,
+        'title' => $title,
+        'content' => $content,
+        'format' => $format,
+        'updated_at' => gmdate('c'),
+    ]);
+    if ($statement->rowCount() !== 1) {
+        throw new RuntimeException('La page à modifier est introuvable.');
+    }
+
+    return $id;
+}
+
+function elodie_cms_delete_page(int $id): void
+{
+    $database = elodie_cms_database();
+    $database->beginTransaction();
+    try {
+        $find = $database->prepare('SELECT slug FROM pages WHERE id = :id AND slug <> \'about\'');
+        $find->execute(['id' => $id]);
+        $slug = $find->fetchColumn();
+        if (!is_string($slug)) {
+            throw new RuntimeException('La page ne peut pas être supprimée.');
+        }
+        $menu = $database->prepare('DELETE FROM menu_items WHERE item_type = \'page\' AND target = :slug');
+        $menu->execute(['slug' => $slug]);
+        $delete = $database->prepare('DELETE FROM pages WHERE id = :id AND slug <> \'about\'');
+        $delete->execute(['id' => $id]);
+        if ($delete->rowCount() !== 1) {
+            throw new RuntimeException('La page ne peut pas être supprimée.');
+        }
+        $database->commit();
+    } catch (Throwable $exception) {
+        if ($database->inTransaction()) {
+            $database->rollBack();
+        }
+        throw $exception;
+    }
+}
+
+function elodie_cms_ensure_about_page(string $title, string $content): void
+{
+    $database = elodie_cms_database();
+    if ($database->query('SELECT 1 FROM settings WHERE setting_key = -5')->fetchColumn()) {
+        return;
+    }
+
+    $database->beginTransaction();
+    try {
+        $page = $database->prepare(
+            'INSERT INTO pages (slug, title, content, content_format, updated_at)
+             VALUES (\'about\', :title, :content, \'markdown\', :updated_at)
+             ON CONFLICT(slug) DO NOTHING'
+        );
+        $page->execute(['title' => $title, 'content' => $content, 'updated_at' => gmdate('c')]);
+        $marker = $database->prepare('INSERT INTO settings (setting_key, setting_value) VALUES (-5, :value)');
+        $marker->execute(['value' => 'about-page-created']);
+        $database->commit();
+    } catch (Throwable $exception) {
+        if ($database->inTransaction()) {
+            $database->rollBack();
+        }
+        throw $exception;
+    }
 }
 
 function elodie_cms_write_encoded_configuration(array $values): void
