@@ -1,7 +1,7 @@
 <?php
 
 require_once __DIR__ . '/security.php';
-uag_start_session();
+elodie_cms_start_session();
 
 // on inclu la page de config
 require_once __DIR__ . '/config.php';

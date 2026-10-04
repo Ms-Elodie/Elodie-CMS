@@ -4,7 +4,7 @@ require_once __DIR__ . '/security.php';
 require __DIR__ . '/verif.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    uag_require_valid_csrf_token();
+    elodie_cms_require_valid_csrf_token();
     $commentId = $_POST['id'] ?? null;
     $operation = $_POST['operation'] ?? null;
     if (!is_string($commentId) || !ctype_digit($commentId) || (int) $commentId < 1
@@ -14,9 +14,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($operation === 'approve') {
-        uag_set_comment_status((int) $commentId, 'approved');
+        elodie_cms_set_comment_status((int) $commentId, 'approved');
     } elseif ($operation === 'delete') {
-        uag_delete_comment((int) $commentId);
+        elodie_cms_delete_comment((int) $commentId);
     } else {
         http_response_code(400);
         exit('L’action de modération est invalide.');
@@ -26,8 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit();
 }
 
-$pendingComments = uag_list_comments('pending');
-$approvedComments = uag_list_comments('approved');
+$pendingComments = elodie_cms_list_comments('pending');
+$approvedComments = elodie_cms_list_comments('approved');
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -56,17 +56,17 @@ $approvedComments = uag_list_comments('approved');
     <?php endif; ?>
     <?php foreach ($pendingComments as $comment): ?>
         <article class="comment-card">
-            <h3><?= uag_escape($comment['author']) ?></h3>
-            <p class="comment-meta">Article <?= (int) $comment['article_id'] ?> · <?= uag_escape($comment['created_at']) ?></p>
-            <p><?= nl2br(uag_escape($comment['body']), false) ?></p>
+            <h3><?= elodie_cms_escape($comment['author']) ?></h3>
+            <p class="comment-meta">Article <?= (int) $comment['article_id'] ?> · <?= elodie_cms_escape($comment['created_at']) ?></p>
+            <p><?= nl2br(elodie_cms_escape($comment['body']), false) ?></p>
             <form method="post" action="comments.php">
-                <?= uag_csrf_input() ?>
+                <?= elodie_cms_csrf_input() ?>
                 <input type="hidden" name="id" value="<?= (int) $comment['id'] ?>">
                 <input type="hidden" name="operation" value="approve">
                 <button type="submit">Approuver</button>
             </form>
             <form method="post" action="comments.php">
-                <?= uag_csrf_input() ?>
+                <?= elodie_cms_csrf_input() ?>
                 <input type="hidden" name="id" value="<?= (int) $comment['id'] ?>">
                 <input type="hidden" name="operation" value="delete">
                 <button type="submit">Supprimer</button>
@@ -80,11 +80,11 @@ $approvedComments = uag_list_comments('approved');
     <?php endif; ?>
     <?php foreach ($approvedComments as $comment): ?>
         <article class="comment-card">
-            <h3><?= uag_escape($comment['author']) ?></h3>
-            <p class="comment-meta">Article <?= (int) $comment['article_id'] ?> · <?= uag_escape($comment['created_at']) ?></p>
-            <p><?= nl2br(uag_escape($comment['body']), false) ?></p>
+            <h3><?= elodie_cms_escape($comment['author']) ?></h3>
+            <p class="comment-meta">Article <?= (int) $comment['article_id'] ?> · <?= elodie_cms_escape($comment['created_at']) ?></p>
+            <p><?= nl2br(elodie_cms_escape($comment['body']), false) ?></p>
             <form method="post" action="comments.php">
-                <?= uag_csrf_input() ?>
+                <?= elodie_cms_csrf_input() ?>
                 <input type="hidden" name="id" value="<?= (int) $comment['id'] ?>">
                 <input type="hidden" name="operation" value="delete">
                 <button type="submit">Supprimer</button>

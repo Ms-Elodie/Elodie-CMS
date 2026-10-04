@@ -1,9 +1,9 @@
 <?php
 
 require_once __DIR__ . '/admin/security.php';
-uag_start_session();
+elodie_cms_start_session();
 
-if (uag_is_installed()) {
+if (elodie_cms_is_installed()) {
     http_response_code(404);
     exit('Installation déjà effectuée.');
 }
@@ -25,7 +25,7 @@ $values = [
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    uag_require_valid_csrf_token();
+    elodie_cms_require_valid_csrf_token();
 
     foreach ($values as $key => $default) {
         if ($key === 'password') {
@@ -92,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $settings[10] = $values['date_format'];
         $encodedSettings = array_map('base64_encode', $settings);
         $encodedSettings[] = '';
-        uag_write_encoded_configuration($encodedSettings);
+        elodie_cms_write_encoded_configuration($encodedSettings);
 
         header('Location: index.php');
         exit();
@@ -111,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Installation de Elodie CMS</title>
+    <title>Installation de Elodie CMS <?= elodie_cms_escape(elodie_cms_version()) ?></title>
     <style>
         body { color: #444; font: 16px sans-serif; margin: 2rem auto; max-width: 42rem; padding: 0 1rem; }
         label { display: block; margin-top: 1rem; }
@@ -120,22 +120,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 <body>
-    <h1>Installation de Elodie CMS</h1>
+    <h1>Installation de Elodie CMS <?= elodie_cms_escape(elodie_cms_version()) ?></h1>
     <?php foreach ($errors as $error): ?>
-        <p class="error"><?= uag_escape($error) ?></p>
+        <p class="error"><?= elodie_cms_escape($error) ?></p>
     <?php endforeach; ?>
     <form method="post" action="install.php">
-        <?= uag_csrf_input() ?>
+        <?= elodie_cms_csrf_input() ?>
         <label for="title">Titre du site</label>
-        <input id="title" name="title" maxlength="120" required value="<?= uag_escape($values['title']) ?>">
+        <input id="title" name="title" maxlength="120" required value="<?= elodie_cms_escape($values['title']) ?>">
         <label for="language">Langue</label>
         <select id="language" name="language">
             <?php foreach ($languages as $language): ?>
-                <option value="<?= uag_escape($language) ?>" <?= $values['language'] === $language ? 'selected' : '' ?>><?= uag_escape($language) ?></option>
+                <option value="<?= elodie_cms_escape($language) ?>" <?= $values['language'] === $language ? 'selected' : '' ?>><?= elodie_cms_escape($language) ?></option>
             <?php endforeach; ?>
         </select>
         <label for="author">Responsable</label>
-        <input id="author" name="author" maxlength="120" required value="<?= uag_escape($values['author']) ?>">
+        <input id="author" name="author" maxlength="120" required value="<?= elodie_cms_escape($values['author']) ?>">
         <label for="comments">Commentaires internes</label>
         <select id="comments" name="comments">
             <option value="off" <?= $values['comments'] === 'off' ? 'selected' : '' ?>>Désactivés</option>
@@ -147,9 +147,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <option value="off" <?= $values['pagination'] === 'off' ? 'selected' : '' ?>>Désactivée</option>
         </select>
         <label for="site_url">Adresse du site</label>
-        <input id="site_url" name="site_url" type="url" required value="<?= uag_escape($values['site_url']) ?>">
+        <input id="site_url" name="site_url" type="url" required value="<?= elodie_cms_escape($values['site_url']) ?>">
         <label for="login">Login administrateur</label>
-        <input id="login" name="login" maxlength="120" required autocomplete="username" value="<?= uag_escape($values['login']) ?>">
+        <input id="login" name="login" maxlength="120" required autocomplete="username" value="<?= elodie_cms_escape($values['login']) ?>">
         <label for="password">Mot de passe (12 à 72 octets)</label>
         <input id="password" name="password" type="password" minlength="12" maxlength="72" required autocomplete="new-password">
         <label for="rewriting">Réécriture des URL</label>

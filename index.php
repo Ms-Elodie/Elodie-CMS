@@ -3,14 +3,14 @@
 require_once __DIR__ . '/admin/security.php';
 function lire_array($fichier)
 {
-return uag_read_encoded_configuration();
+return elodie_cms_read_encoded_configuration();
 }
 $fichier='admin/configuration.txt'; 
 $tableau=array();
 $tableau=lire_array($fichier);
 error_reporting(0);
 
-if (!uag_is_installed()) {
+if (!elodie_cms_is_installed()) {
     header('Location: install.php');
     exit();
 }
@@ -316,7 +316,7 @@ else { echo'<li id="draggable2" class="ui-widget-content ui-corner-tr" style="te
 
 }
 
-echo '<div id="dialog2" title="À propos d’Elodie CMS"><p>Elodie CMS est un projet de partage dont je reste l’autrice originale. Sa modernisation a bénéficié de l’aide de GitHub Copilot, utilisé comme outil complémentaire de développement.</p><p>Je suis également la créatrice de BlockColor pour Luanti et j’utilise aussi des outils d’intelligence artificielle pour créer de la musique. Mon approche de l’IA est nuancée : ni pour, ni contre. Ma santé et mon énergie sont parfois limitées, et je reconnais que l’IA peut aider comme outil complémentaire, sans remplacer la personne qui crée.</p></div>';
+echo '<div id="dialog2" title="À propos d’Elodie CMS"><p>Elodie CMS 1.00 est la nouvelle version modernisée de UAG CMS. J’en reste l’autrice originale. Le code a été retravaillé avec l’aide de GitHub Copilot, utilisé comme outil complémentaire de développement.</p><p>Je suis également la créatrice de BlockColor pour Luanti et j’utilise aussi des outils d’intelligence artificielle pour créer de la musique. Mon approche de l’IA est nuancée : ni pour, ni contre. Ma santé et mon énergie sont parfois limitées, et je reconnais que l’IA peut aider comme outil complémentaire, sans remplacer la personne qui crée.</p></div>';
 echo '<li id="draggable3" class="ui-widget-content ui-corner-tr" style="text-align:center;background:none;border:none;padding:10px;margin:10px;float:left;list-style-type:none;"><div id="opener2"><img src="admin/images/info.png" alt=""><h5 class="ui-widget-header" style="background:none;margin:0px;">À propos</h5></div></li>';
 
 if (base64_decode($tableau[22])=='') {}

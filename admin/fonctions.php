@@ -95,7 +95,7 @@ include ('admin/includes/config1.php');
 
 ob_start('ob_gzhandler'); register_shutdown_function('ob_end_flush');
 
-$allnews = uag_read_news(__DIR__ . '/../news.php');
+$allnews = elodie_cms_read_news(__DIR__ . '/../news.php');
 
 $nb_messagetotal = count($allnews);
 
@@ -110,7 +110,7 @@ $liste_news = array_slice($allnews, max(0, $page ?? 0), 1);
 
 if(!empty($liste_news)) { foreach($liste_news as $id => $news) {
 
-echo'<title>'.uag_escape_legacy_text(base64_decode($tableau[0])).' - '.uag_escape_legacy_text($news['titre']).'</title><meta name="Description" content="'.uag_escape_legacy_text($news['chapo']).'">';	} }
+echo'<title>'.elodie_cms_escape_legacy_text(base64_decode($tableau[0])).' - '.elodie_cms_escape_legacy_text($news['titre']).'</title><meta name="Description" content="'.elodie_cms_escape_legacy_text($news['chapo']).'">';	} }
 
 else { echo'<title>'.base64_decode($tableau[0]).' - '.Informations.'</title><meta name="Description" content="'.PasdeNews.'">'; };
 
@@ -122,7 +122,7 @@ include ('admin/includes/config1.php');
 
 ob_start('ob_gzhandler'); register_shutdown_function('ob_end_flush');
 
-$allnews = uag_read_news(__DIR__ . '/../news.php');
+$allnews = elodie_cms_read_news(__DIR__ . '/../news.php');
 
 $nb_messagetotal = count($allnews);
 
@@ -138,13 +138,13 @@ $liste_news = array_slice($allnews, max(0, $page ?? 0), 1);
 
 if(!empty($liste_news)) { foreach($liste_news as $id => $news) {
 
-echo'<h2><a href=""><strong>'.uag_escape_legacy_text($news['titre']).' '.Par.' '.uag_escape_legacy_text(base64_decode($tableau[2])).' - ';
+echo'<h2><a href=""><strong>'.elodie_cms_escape_legacy_text($news['titre']).' '.Par.' '.elodie_cms_escape_legacy_text(base64_decode($tableau[2])).' - ';
 
 if (base64_decode($tableau[1])=='fr') { 
 
 if (base64_decode($tableau[10])=='on') { 
 
-echo uag_escape_legacy_text($news['jour']).' ';
+echo elodie_cms_escape_legacy_text($news['jour']).' ';
 
 if     ($news['mois']=='01') {echo ''.Janvier.'' ;}
 elseif ($news['mois']=='02') {echo ''.Fevrier.'' ;}
@@ -159,17 +159,17 @@ elseif ($news['mois']=='10') {echo ''.Octobre.'' ;}
 elseif ($news['mois']=='11') {echo ''.Novembre.'' ;}
 elseif ($news['mois']=='12') {echo ''.Decembre.'' ;}
 
-echo ' '.uag_escape_legacy_text($news['annee']).' ';
+echo ' '.elodie_cms_escape_legacy_text($news['annee']).' ';
 
  }
 
-elseif (base64_decode($tableau[10])=='off') { echo' '.uag_escape_legacy_text($news['jour']).'-'.uag_escape_legacy_text($news['mois']).'-'.uag_escape_legacy_text($news['annee']).' '; } }
+elseif (base64_decode($tableau[10])=='off') { echo' '.elodie_cms_escape_legacy_text($news['jour']).'-'.elodie_cms_escape_legacy_text($news['mois']).'-'.elodie_cms_escape_legacy_text($news['annee']).' '; } }
 
 else { 
 
 if (base64_decode($tableau[10])=='on') { 
 
-echo uag_escape_legacy_text($news['annee']).' ';
+echo elodie_cms_escape_legacy_text($news['annee']).' ';
 
 if     ($news['mois']=='01') {echo ''.Janvier.'' ;}
 elseif ($news['mois']=='02') {echo ''.Fevrier.'' ;}
@@ -184,13 +184,13 @@ elseif ($news['mois']=='10') {echo ''.Octobre.'' ;}
 elseif ($news['mois']=='11') {echo ''.Novembre.'' ;}
 elseif ($news['mois']=='12') {echo ''.Decembre.'' ;}
 
-echo ' '.uag_escape_legacy_text($news['jour']).' ';
+echo ' '.elodie_cms_escape_legacy_text($news['jour']).' ';
 
  }
 
-elseif (base64_decode($tableau[10])=='off') { echo' '.uag_escape_legacy_text($news['annee']).'-'.uag_escape_legacy_text($news['mois']).'-'.uag_escape_legacy_text($news['jour']).' '; } }
+elseif (base64_decode($tableau[10])=='off') { echo' '.elodie_cms_escape_legacy_text($news['annee']).'-'.elodie_cms_escape_legacy_text($news['mois']).'-'.elodie_cms_escape_legacy_text($news['jour']).' '; } }
 
-echo'</strong></a></h2><div id="article" style="padding-left:10px">'.uag_sanitize_article_html($news['contenu']).'</div>';
+echo'</strong></a></h2><div id="article" style="padding-left:10px">'.elodie_cms_sanitize_article_html($news['contenu']).'</div>';
 
 }
 }
@@ -298,11 +298,11 @@ function public_article_id(array $articles): ?int
 function comments(): void
 {
     echo '</article>';
-    if (!uag_comments_enabled()) {
+    if (!elodie_cms_comments_enabled()) {
         return;
     }
 
-    $articleId = public_article_id(uag_read_news());
+    $articleId = public_article_id(elodie_cms_read_news());
     if ($articleId === null) {
         return;
     }
@@ -311,15 +311,15 @@ function comments(): void
     if (($_GET['comment'] ?? '') === 'sent') {
         echo '<p role="status">Votre commentaire a été envoyé et sera visible après validation.</p>';
     }
-    foreach (uag_comments_for_article($articleId) as $comment) {
-        echo '<section class="comment"><h3>' . uag_escape($comment['author']) . '</h3>';
-        echo '<p class="comment-date">' . uag_escape($comment['created_at']) . '</p>';
-        echo '<p>' . nl2br(uag_escape($comment['body']), false) . '</p></section>';
+    foreach (elodie_cms_comments_for_article($articleId) as $comment) {
+        echo '<section class="comment"><h3>' . elodie_cms_escape($comment['author']) . '</h3>';
+        echo '<p class="comment-date">' . elodie_cms_escape($comment['created_at']) . '</p>';
+        echo '<p>' . nl2br(elodie_cms_escape($comment['body']), false) . '</p></section>';
     }
 
     echo '<form class="comment-form" method="post" action="index2.php?module=articles&amp;page='
         . (int) ($_GET['page'] ?? 1) . '">'
-        . uag_csrf_input()
+        . elodie_cms_csrf_input()
         . '<input type="hidden" name="comment_submit" value="1">'
         . '<label for="comment-author">Nom</label>'
         . '<input id="comment-author" name="author" maxlength="120" required autocomplete="name">'
@@ -360,7 +360,7 @@ echo' ( ';
 function age($naiss)  {
   $dateParts = preg_split('~[/.]~', $naiss);
   if (!is_array($dateParts) || count($dateParts) !== 3
-      || !uag_valid_article_date($dateParts[0], $dateParts[1], $dateParts[2])) {
+      || !elodie_cms_valid_article_date($dateParts[0], $dateParts[1], $dateParts[2])) {
       return;
   }
   [$annee, $mois, $jour] = $dateParts;
@@ -447,7 +447,7 @@ function accueil() {
 
 $test01=is_writable(__DIR__ . '/../data');
 $test02=is_writable(__DIR__ . '/../images');
-$test03=is_file(__DIR__ . '/../data/uag.sqlite') && is_writable(__DIR__ . '/../data/uag.sqlite');
+$test03=is_file(__DIR__ . '/../data/elodie-cms.sqlite') && is_writable(__DIR__ . '/../data/elodie-cms.sqlite');
 
 $status = [
     [$test01, CONFIGOUI, CONFIGNON],
@@ -545,12 +545,12 @@ for ($index = 0; $index < 32; $index++) {
             : password_hash($password, PASSWORD_DEFAULT);
         continue;
     }
-    $value = html_entity_decode(uag_post_string((string) $index), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-    if (in_array($index, [15, 23, 25, 26, 30, 31], true) && !uag_valid_url_setting($value)) {
+    $value = html_entity_decode(elodie_cms_post_string((string) $index), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    if (in_array($index, [15, 23, 25, 26, 30, 31], true) && !elodie_cms_valid_url_setting($value)) {
         http_response_code(400);
         exit('Une adresse de ressource est invalide.');
     }
-    if ($index === 5 && !uag_valid_http_url($value)) {
+    if ($index === 5 && !elodie_cms_valid_http_url($value)) {
         http_response_code(400);
         exit('L’adresse du site est invalide.');
     }
@@ -573,7 +573,7 @@ for ($index = 0; $index < 32; $index++) {
     $settings[$index] = htmlentities($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 $encodedSettings = array_map('base64_encode', $settings);
-uag_write_encoded_configuration($encodedSettings);
+elodie_cms_write_encoded_configuration($encodedSettings);
 $_SESSION['_login'] = html_entity_decode($settings[6], ENT_QUOTES | ENT_HTML5, 'UTF-8');
 $_SESSION['_pass'] = $settings[7];
 
@@ -583,7 +583,7 @@ else {
   
 error_reporting(0);
 
-echo'<form action="index2.php?page=configuration&id=2" method="post">'.uag_csrf_input().'
+echo'<form action="index2.php?page=configuration&id=2" method="post">'.elodie_cms_csrf_input().'
 	
 <div class="coda-slider"  id="main-slider">
 <div>
@@ -1210,22 +1210,22 @@ $tableau=lire_array($fichier);
 echo'<table class="data" style="border-collapse: collapse !important ;"><thead><tr>
 <th style="width:300px;border:1px solid #CCCCCC; text-transform: uppercase; background-color:#E2E2E2;"><center>'.Titre.'</center></th><th style="width:100px;border:1px solid #CCCCCC; text-transform: uppercase; background-color:#E2E2E2;"><center>'.Date.'</center></th><th style="width:100px;border:1px solid #CCCCCC; text-transform: uppercase; background-color:#E2E2E2;"><center>'.Auteur.'</center></th><th style="width:100px;border:1px solid #CCCCCC; text-transform: uppercase; background-color:#E2E2E2;"><center>'.Supprimer.'</center></th><th style="width:100px;border:1px solid #CCCCCC; text-transform: uppercase; background-color:#E2E2E2;"><center>'.Editer.'</center></th></tr></thead></table>';
  
-$liste_news = uag_read_news(__DIR__ . '/../news.php');
+$liste_news = elodie_cms_read_news(__DIR__ . '/../news.php');
 if(!empty($liste_news)) {
 	foreach($liste_news as $id => $news) {
 
 echo'<table class="data" style="border-collapse: collapse !important ;">
 <thead><tr >
 <td style="width:300px;border:1px solid #CCCCCC;background-color:#FFF9F4;">';
-echo uag_escape_legacy_text($news['titre']);
+echo elodie_cms_escape_legacy_text($news['titre']);
 echo'</td>
 <td style="width:100px;border:1px solid #CCCCCC;background-color:#FFF9F4;text-align:center;">';
-if (base64_decode($tableau[1])=='fr') { echo' '.uag_escape_legacy_text($news['jour']).'-'.uag_escape_legacy_text($news['mois']).'-'.uag_escape_legacy_text($news['annee']).' '; }
-else { echo' '.uag_escape_legacy_text($news['annee']).'-'.uag_escape_legacy_text($news['mois']).'-'.uag_escape_legacy_text($news['jour']).' '; }
+if (base64_decode($tableau[1])=='fr') { echo' '.elodie_cms_escape_legacy_text($news['jour']).'-'.elodie_cms_escape_legacy_text($news['mois']).'-'.elodie_cms_escape_legacy_text($news['annee']).' '; }
+else { echo' '.elodie_cms_escape_legacy_text($news['annee']).'-'.elodie_cms_escape_legacy_text($news['mois']).'-'.elodie_cms_escape_legacy_text($news['jour']).' '; }
 echo'</td>
 <td style="width:100px;border:1px solid #CCCCCC;background-color:#FFF9F4;"><center>';
 echo base64_decode($tableau[2]);
-echo'</center></td><td style="width:100px;border:1px solid #CCCCCC;background-color:#FFF9F4;"><center><form method="post" action="index2.php?page=supprimer">'.uag_csrf_input().'<input type="hidden" name="id" value="'.(int) $id.'"><button type="submit" aria-label="'.Supprimer.'"><img src="images/supprimer.png" alt="'.Supprimer.'" width="16px"></button></form></center></td><td style="width:100px;border:1px solid #CCCCCC;background-color:#FFF9F4;"><center><a href="index2.php?page=editer&id='.(int) $id.'"><img src="images/edition.png" alt="Editer" width="16px"></a></center></td></tr></thead></table>';
+echo'</center></td><td style="width:100px;border:1px solid #CCCCCC;background-color:#FFF9F4;"><center><form method="post" action="index2.php?page=supprimer">'.elodie_cms_csrf_input().'<input type="hidden" name="id" value="'.(int) $id.'"><button type="submit" aria-label="'.Supprimer.'"><img src="images/supprimer.png" alt="'.Supprimer.'" width="16px"></button></form></center></td><td style="width:100px;border:1px solid #CCCCCC;background-color:#FFF9F4;"><center><a href="index2.php?page=editer&id='.(int) $id.'"><img src="images/edition.png" alt="Editer" width="16px"></a></center></td></tr></thead></table>';
 }
 }
 } 
@@ -1234,7 +1234,7 @@ echo'</center></td><td style="width:100px;border:1px solid #CCCCCC;background-co
 
 function formulaire_images() {
 
-echo'<form method="POST" action="index2.php?page=upload" enctype="multipart/form-data">'.uag_csrf_input().'
+echo'<form method="POST" action="index2.php?page=upload" enctype="multipart/form-data">'.elodie_cms_csrf_input().'
      <input type="hidden" name="MAX_FILE_SIZE" value="1048576">
      '.Fichier.' : <input type="file" name="avatar">
      <input type="submit" name="envoyer" value="'.Ok.'">
@@ -1297,13 +1297,13 @@ while($fichier = readdir($Ressource))
 
          if(in_array($ext, $valide_extensions))
          {
-echo '<li class="ui-widget-content ui-corner-tr" style="list-style-type:none;margin-top:25px;"><div> <h5 class="ui-widget-header">'.uag_escape($test_Fichier2).'</h5>
+echo '<li class="ui-widget-content ui-corner-tr" style="list-style-type:none;margin-top:25px;"><div> <h5 class="ui-widget-header">'.elodie_cms_escape($test_Fichier2).'</h5>
 
-<img src="'.uag_escape($test_Fichier).'" width="96" height="72">
+<img src="'.elodie_cms_escape($test_Fichier).'" width="96" height="72">
 
-<div style="text-align:center;"><a href="'.uag_escape(rtrim(base64_decode($tableau[5]), '/').$test_Fichier3).'" target="_blank" rel="noopener noreferrer" class="ui-icon ui-icon-zoomin" aria-label="Aperçu"></a>
+<div style="text-align:center;"><a href="'.elodie_cms_escape(rtrim(base64_decode($tableau[5]), '/').$test_Fichier3).'" target="_blank" rel="noopener noreferrer" class="ui-icon ui-icon-zoomin" aria-label="Aperçu"></a>
 
-<form method="post" action="index2.php?page=delete">'.uag_csrf_input().'<input type="hidden" name="id" value="'.uag_escape($test_Fichier2).'"><button type="submit" class="ui-icon ui-icon-trash" aria-label="'.Supprimer.'">';
+<form method="post" action="index2.php?page=delete">'.elodie_cms_csrf_input().'<input type="hidden" name="id" value="'.elodie_cms_escape($test_Fichier2).'"><button type="submit" class="ui-icon ui-icon-trash" aria-label="'.Supprimer.'">';
 
 echo'</button></form></div></div></li>'; } } }
 
@@ -1323,23 +1323,23 @@ $tableau=lire_array($fichier);
 
 if(isset($_POST['titre']) && isset($_POST['contenu']) && isset($_POST['chapo']) && isset($_POST['jour']) && isset($_POST['mois']) && isset($_POST['annee'])) {
      //On d&eacute;finit les variables
-$titre = uag_post_string('titre');
-$contenu = uag_post_string('contenu');
+$titre = elodie_cms_post_string('titre');
+$contenu = elodie_cms_post_string('contenu');
 
-     $chapo = uag_post_string('chapo');
-     $jour = uag_post_string('jour');
-     $mois = uag_post_string('mois');
-     $annee = uag_post_string('annee');
-	 $note = uag_post_string('note');
-     if (!uag_valid_article_date($annee, $mois, $jour)
+     $chapo = elodie_cms_post_string('chapo');
+     $jour = elodie_cms_post_string('jour');
+     $mois = elodie_cms_post_string('mois');
+     $annee = elodie_cms_post_string('annee');
+	 $note = elodie_cms_post_string('note');
+     if (!elodie_cms_valid_article_date($annee, $mois, $jour)
          || !in_array($note, ['Off', '0', '1', '2', '3', '4', '5'], true)) {
          throw new InvalidArgumentException('La date ou la note de l’article est invalide.');
      }
-     $contenu = uag_sanitize_article_html($contenu);
+     $contenu = elodie_cms_sanitize_article_html($contenu);
 	//On r&eacute;cup&egrave;re les donn&eacute;es d&eacutejà existantes
-	$news = uag_read_news(__DIR__ . '/../news.php');
+	$news = elodie_cms_read_news(__DIR__ . '/../news.php');
 	$news[] = array('titre' => $titre, 'jour' => $jour, 'mois' => $mois, 'annee' => $annee,'contenu' => $contenu, 'chapo' => $chapo, 'note' => $note);
-	uag_write_news(__DIR__ . '/../news.php', $news);
+	elodie_cms_write_news(__DIR__ . '/../news.php', $news);
 	
       echo '<style type="text/css">
 .ui-dialog,.ui-dialog-content{
@@ -1386,7 +1386,7 @@ else {
 <body>
 <body onload="whizzywig()">	 
 	 
-	 <form action="" method="post">'.uag_csrf_input().'
+	 <form action="" method="post">'.elodie_cms_csrf_input().'
 <label for="pseudo">'.Auteur.'</label> :<strong> '.base64_decode($tableau[2]).'</strong> -  <label for="titre">'.Titre.' : </label> <input type="text" required name="titre" id="titre" placeholder="'.Articla.'" /> -  
 
 <label for="jour">'.Jour.'</label> : <SELECT name="jour" id="jour" STYLE="width:70px;">';
@@ -1445,33 +1445,33 @@ if(!isset($_GET['id']) || !is_string($_GET['id']) || !ctype_digit($_GET['id'])) 
 	exit();
 }
 
-$news = uag_read_news(__DIR__ . '/../news.php');
+$news = elodie_cms_read_news(__DIR__ . '/../news.php');
 $newsAmodifier = (int) $_GET['id'];
 if (!isset($news[$newsAmodifier]) || !is_array($news[$newsAmodifier])) {
     http_response_code(404);
     exit('Article introuvable.');
 }
 if(isset($_POST['titre']) && isset($_POST['contenu'])) {
-$news[$newsAmodifier]['titre'] = uag_post_string('titre');
-$news[$newsAmodifier]['jour'] = uag_post_string('jour');
-$news[$newsAmodifier]['mois'] = uag_post_string('mois');
-$news[$newsAmodifier]['annee'] = uag_post_string('annee');
-if (!uag_valid_article_date(
+$news[$newsAmodifier]['titre'] = elodie_cms_post_string('titre');
+$news[$newsAmodifier]['jour'] = elodie_cms_post_string('jour');
+$news[$newsAmodifier]['mois'] = elodie_cms_post_string('mois');
+$news[$newsAmodifier]['annee'] = elodie_cms_post_string('annee');
+if (!elodie_cms_valid_article_date(
     $news[$newsAmodifier]['annee'],
     $news[$newsAmodifier]['mois'],
     $news[$newsAmodifier]['jour']
 )) {
     throw new InvalidArgumentException('La date de l’article est invalide.');
 }
-$news[$newsAmodifier]['contenu'] = uag_sanitize_article_html(uag_post_string('contenu'));
+$news[$newsAmodifier]['contenu'] = elodie_cms_sanitize_article_html(elodie_cms_post_string('contenu'));
 
-$news[$newsAmodifier]['contenu'] = uag_sanitize_article_html($news[$newsAmodifier]['contenu']);
-	$news[$newsAmodifier]['chapo'] = uag_post_string('chapo');
-	$news[$newsAmodifier]['note'] = uag_post_string('note');
+$news[$newsAmodifier]['contenu'] = elodie_cms_sanitize_article_html($news[$newsAmodifier]['contenu']);
+	$news[$newsAmodifier]['chapo'] = elodie_cms_post_string('chapo');
+	$news[$newsAmodifier]['note'] = elodie_cms_post_string('note');
     if (!in_array($news[$newsAmodifier]['note'], ['Off', '0', '1', '2', '3', '4', '5'], true)) {
         throw new InvalidArgumentException('La note de l’article est invalide.');
     }
-	uag_write_news(__DIR__ . '/../news.php', $news);
+	elodie_cms_write_news(__DIR__ . '/../news.php', $news);
 	echo '<style type="text/css">
 .ui-dialog,.ui-dialog-content{
 min-height: 0px !important;
@@ -1517,16 +1517,16 @@ echo'
 <body>
 <body onload="whizzywig()">
 	
-	<form action="" method="POST">'.uag_csrf_input().'
-	'.Auteur.' : <strong>'.uag_escape_legacy_text(base64_decode($tableau[2])).'</strong> - <label for="titre">'.Titre.' : </label> <input type="text" required name="titre" id="titre"  placeholder="'.Articla.'" value="'.uag_escape_legacy_text($news[$newsAmodifier]['titre']).'" /> -
-<label for="jour">'.Jour.' : </label> <input type="text" name="jour" id="jour" value="'.uag_escape_legacy_text($news[$newsAmodifier]['jour']).'" STYLE="width:70px;" readonly="readonly"/ >
-- <label for="mois">'.Mois.' : </label> <input type="text" name="mois" id="mois" value="'.uag_escape_legacy_text($news[$newsAmodifier]['mois']).'" STYLE="width:70px;" readonly="readonly" />
-- <label for="annee">'.Annee.' : </label> <input type="text" name="annee" id="annee" value="'.uag_escape_legacy_text($news[$newsAmodifier]['annee']).'" STYLE="width:70px;" readonly="readonly" />
-<br /><br /><label for="chapo">'.Chapo.' : </label><input type="text" required placeholder="'.Articlb.'" name="chapo" id="chapo" rows="" cols="" value="'.uag_escape_legacy_text($news[$newsAmodifier]['chapo']).'" style="width: 82%;"/><br /><br />';
+	<form action="" method="POST">'.elodie_cms_csrf_input().'
+	'.Auteur.' : <strong>'.elodie_cms_escape_legacy_text(base64_decode($tableau[2])).'</strong> - <label for="titre">'.Titre.' : </label> <input type="text" required name="titre" id="titre"  placeholder="'.Articla.'" value="'.elodie_cms_escape_legacy_text($news[$newsAmodifier]['titre']).'" /> -
+<label for="jour">'.Jour.' : </label> <input type="text" name="jour" id="jour" value="'.elodie_cms_escape_legacy_text($news[$newsAmodifier]['jour']).'" STYLE="width:70px;" readonly="readonly"/ >
+- <label for="mois">'.Mois.' : </label> <input type="text" name="mois" id="mois" value="'.elodie_cms_escape_legacy_text($news[$newsAmodifier]['mois']).'" STYLE="width:70px;" readonly="readonly" />
+- <label for="annee">'.Annee.' : </label> <input type="text" name="annee" id="annee" value="'.elodie_cms_escape_legacy_text($news[$newsAmodifier]['annee']).'" STYLE="width:70px;" readonly="readonly" />
+<br /><br /><label for="chapo">'.Chapo.' : </label><input type="text" required placeholder="'.Articlb.'" name="chapo" id="chapo" rows="" cols="" value="'.elodie_cms_escape_legacy_text($news[$newsAmodifier]['chapo']).'" style="width: 82%;"/><br /><br />';
 
 include ('includes/smiley.php');
 
-echo'<textarea name="contenu" id="contenu" rows="" cols="" style="width: 100%;height: 400px;">'.uag_sanitize_article_html($news[$newsAmodifier]['contenu']).'</textarea>
+echo'<textarea name="contenu" id="contenu" rows="" cols="" style="width: 100%;height: 400px;">'.elodie_cms_sanitize_article_html($news[$newsAmodifier]['contenu']).'</textarea>
 	
 <br/><label for="note">'.Note.'</label> : <SELECT name="note" id="note" STYLE="width:70px;">';
 
@@ -1565,15 +1565,15 @@ echo'</SELECT>&nbsp; &nbsp;<b>'.Nota.'</b> .<br/>
 
 function connexion_blog() {
 
-uag_start_session();
+elodie_cms_start_session();
 
-echo'<style type="text/css">#titre2 {box-shadow: rgba(200, 200, 200, 0.702) 0px 4px 10px -1px;border: 1px solid #E5E5E5;background: #FFFFFF;font-weight: 400;padding: 24px 24px 24px;text-align:center;color: red;font-size: 12px;width:250px;} #titre {box-shadow: rgba(200, 200, 200, 0.702) 0px 4px 10px -1px;border: 1px solid #E5E5E5;background: #FFFFFF;font-weight: 400;padding: 24px 24px 24px;text-align:center;color: #777777;font-size: 25px;width:250px;} #retour a:hover {font-weight: bold;} #retour a {color: #777777;text-decoration: none;} #retour {box-shadow: rgba(200, 200, 200, 0.702) 0px 4px 10px -1px;border: 1px solid #E5E5E5;background: #FFFFFF;font-weight: 400;padding: 24px 24px 24px;text-align:center;color: #777777;font-size: 12px;width:250px;} #page2 { margin: auto; width: 200px;} #UAG{text-align:center;font-size: 9px;color: #666666;}#Ok input{color: #FFFFFF;font-weight: 700;background: black !important;border:1px solid #2E83D9;font-size: 14px;} #login form {box-shadow: rgba(200, 200, 200, 0.702) 0px 4px 10px -1px;border: 1px solid #E5E5E5;background: #FFFFFF;font-weight: 400;padding: 24px 24px 24px;text-align:center;color: #777777;font-size: 14px;width:95%;} #login input { box-shadow: inset 1px 1px 2px rgba(200, 200, 200, 0.196);border:1px solid #BBBBBB;background: #F5F5F5; }</style>
+echo'<style type="text/css">#titre2 {box-shadow: rgba(200, 200, 200, 0.702) 0px 4px 10px -1px;border: 1px solid #E5E5E5;background: #FFFFFF;font-weight: 400;padding: 24px 24px 24px;text-align:center;color: red;font-size: 12px;width:250px;} #titre {box-shadow: rgba(200, 200, 200, 0.702) 0px 4px 10px -1px;border: 1px solid #E5E5E5;background: #FFFFFF;font-weight: 400;padding: 24px 24px 24px;text-align:center;color: #777777;font-size: 25px;width:250px;} #retour a:hover {font-weight: bold;} #retour a {color: #777777;text-decoration: none;} #retour {box-shadow: rgba(200, 200, 200, 0.702) 0px 4px 10px -1px;border: 1px solid #E5E5E5;background: #FFFFFF;font-weight: 400;padding: 24px 24px 24px;text-align:center;color: #777777;font-size: 12px;width:250px;} #page2 { margin: auto; width: 200px;} #ElodieCMS{text-align:center;font-size: 9px;color: #666666;}#Ok input{color: #FFFFFF;font-weight: 700;background: black !important;border:1px solid #2E83D9;font-size: 14px;} #login form {box-shadow: rgba(200, 200, 200, 0.702) 0px 4px 10px -1px;border: 1px solid #E5E5E5;background: #FFFFFF;font-weight: 400;padding: 24px 24px 24px;text-align:center;color: #777777;font-size: 14px;width:95%;} #login input { box-shadow: inset 1px 1px 2px rgba(200, 200, 200, 0.196);border:1px solid #BBBBBB;background: #F5F5F5; }</style>
 <div id="login"><form action="identification.php" method="post"><b>'.Connexion.'</b><br/><br/>
      '.Login.' <br/><input type="text" name="login" value="" /><br /><br />
      '.Code.' <br/><input type="password" name="mdp" value="" /><br /><br />
      Code Google Authenticator / code de secours<br/><input type="text" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="32" /><br /><br />
 
-  '.uag_csrf_input().'
+  '.elodie_cms_csrf_input().'
 
      <div id="Ok"><input type="submit" value="'.Ok.'"></div></form></div>';
 
@@ -1627,7 +1627,7 @@ if(!isset($_POST['id']) || !is_string($_POST['id']) || !ctype_digit($_POST['id']
 	exit();
 }
 //On r&eacute;cup&egrave;re l'array des news
-$news = uag_read_news(__DIR__ . '/../news.php');
+$news = elodie_cms_read_news(__DIR__ . '/../news.php');
 //Puis l'id pass&eacute; en param&egrave;tre
 $id = (int) $_POST['id'];
 
@@ -1637,7 +1637,7 @@ if(isset($news[$id])) {
 	unset($news[$id]);
 	
 	//Puis on sauvegarde le tout
-	uag_write_news(__DIR__ . '/../news.php', $news);
+	elodie_cms_write_news(__DIR__ . '/../news.php', $news);
 
 echo '<style type="text/css">
 .ui-dialog,.ui-dialog-content{
@@ -1688,7 +1688,7 @@ $extensionsByMime = [
 ];
 if ($taille === false || $taille === 0 || $taille > 1048576) {
     http_response_code(400);
-    exit(uag_escape(ImageGros));
+    exit(elodie_cms_escape(ImageGros));
 }
 if ($imageInfo === false
     || !isset($extensionsByMime[$mimeType])
@@ -1697,7 +1697,7 @@ if ($imageInfo === false
     || $imageInfo[1] > 10000
     || $imageInfo[0] * $imageInfo[1] > 40000000) {
     http_response_code(400);
-    exit(uag_escape(ImageUpload));
+    exit(elodie_cms_escape(ImageUpload));
 }
 
 $dossier = '../images/';

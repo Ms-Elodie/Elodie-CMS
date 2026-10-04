@@ -1,13 +1,13 @@
 <?php
 
 require_once __DIR__ . '/security.php';
-uag_start_session();
+elodie_cms_start_session();
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     header('Allow: POST');
     exit('Méthode non autorisée.');
 }
-uag_require_valid_csrf_token();
+elodie_cms_require_valid_csrf_token();
 
 $_SESSION = [];
 $cookie = session_get_cookie_params();

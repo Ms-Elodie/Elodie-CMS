@@ -167,7 +167,7 @@ define('ARTICLOUI', 'Items are enabled, you can write or edit an article .');
 
 define('CONFIGNON', 'The web server must be able to write to the <b>data</b> directory for SQLite.');
 define('IMAGESNON', 'The web server must be able to write to the <b>Images</b> directory.');
-define('ARTICLNON', 'The SQLite database <b>data/uag.sqlite</b> is not writable.');
+define('ARTICLNON', 'The SQLite database <b>data/elodie-cms.sqlite</b> is not writable.');
 
 define('Liendimage', 'The file "News.php" must be CHMOD 666 .');
 

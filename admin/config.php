@@ -4,10 +4,10 @@ require_once __DIR__ . '/security.php';
 
 function lire_array($fichier)
 {
-    return uag_read_encoded_configuration();
+    return elodie_cms_read_encoded_configuration();
 }
 
-$tableau = uag_read_encoded_configuration();
+$tableau = elodie_cms_read_encoded_configuration();
 $salt = 'BwGk15l8WX';
 $storedPassword = base64_decode($tableau[7] ?? '', true);
 $storedLogin = base64_decode($tableau[6] ?? '', true);

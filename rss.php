@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/admin/security.php';
 
-$tableau = uag_read_encoded_configuration();
+$tableau = elodie_cms_read_encoded_configuration();
 if (count($tableau) < 8) {
     http_response_code(503);
     exit('Le CMS n’est pas encore installé.');
@@ -19,14 +19,14 @@ $siteUrl = base64_decode($tableau[5] ?? '', true);
 $siteTitle = $siteTitle === false ? '' : $siteTitle;
 $siteUrl = $siteUrl === false ? '' : $siteUrl;
 $siteTitle = html_entity_decode($siteTitle, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-$xml = '<title>'.uag_escape_xml($siteTitle).'</title>'."\n";
-$xml .= '<link>'.uag_escape_xml($siteUrl).'</link>'."\n";
-$xml .= '<atom:link href="'.uag_escape_xml($siteUrl.'/rss.php').'" rel="self" type="application/rss+xml" />'."\n";
+$xml = '<title>'.elodie_cms_escape_xml($siteTitle).'</title>'."\n";
+$xml .= '<link>'.elodie_cms_escape_xml($siteUrl).'</link>'."\n";
+$xml .= '<atom:link href="'.elodie_cms_escape_xml($siteUrl.'/rss.php').'" rel="self" type="application/rss+xml" />'."\n";
 $xml .= '<description></description>'."\n"; 
 $xml .= '<language>fr</language>'."\n"; 
 $xml .= '<copyright></copyright>'."\n";
 
-$liste = uag_read_news(__DIR__ . '/news.php');
+$liste = elodie_cms_read_news(__DIR__ . '/news.php');
 krsort($liste);
 
 foreach ($liste as $file => $article) {
@@ -48,12 +48,12 @@ if ($date === false || $date->format('Y-m-d') !== sprintf('%04d-%02d-%02d', (int
 
 $item = '<item>'."\n";
 $title = is_string($article['titre'] ?? null) ? html_entity_decode($article['titre'], ENT_QUOTES | ENT_HTML5, 'UTF-8') : '';
-$content = is_string($article['contenu'] ?? null) ? uag_sanitize_article_html($article['contenu']) : '';
-$item .= '<title>'.uag_escape_xml($title).'</title>'."\n";
+$content = is_string($article['contenu'] ?? null) ? elodie_cms_sanitize_article_html($article['contenu']) : '';
+$item .= '<title>'.elodie_cms_escape_xml($title).'</title>'."\n";
 $item .= '<guid isPermaLink="false">article-'.((int) $file + 1).'</guid>'."\n";
-$item .= '<link>'.uag_escape_xml(rtrim($siteUrl, '/').'/article-'.((int) $file + 1).'.php').'</link>'."\n";
+$item .= '<link>'.elodie_cms_escape_xml(rtrim($siteUrl, '/').'/article-'.((int) $file + 1).'.php').'</link>'."\n";
 $item .= '<pubDate>'.$date->format(DATE_RSS).'</pubDate>'."\n";
-$item .= '<description>'.uag_escape_xml($content).'</description>'."\n";
+$item .= '<description>'.elodie_cms_escape_xml($content).'</description>'."\n";
 $xml .= $item.'</item>'."\n";
 			
 }

@@ -167,6 +167,6 @@ define('ARTICLOUI', 'Les articles sont activés, vous pouvez écrire ou éditer 
 
 define('CONFIGNON', 'Le serveur web doit pouvoir écrire dans le dossier <b>data</b> pour utiliser SQLite.');
 define('IMAGESNON', 'Le serveur web doit pouvoir écrire dans le dossier <b>Images</b>.');
-define('ARTICLNON', 'La base SQLite ne peut pas être écrite dans <b>data/uag.sqlite</b>.');
+define('ARTICLNON', 'La base SQLite ne peut pas être écrite dans <b>data/elodie-cms.sqlite</b>.');
 
 ?>
