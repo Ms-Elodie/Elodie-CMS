@@ -1,6 +1,6 @@
-# Elodie CMS 1.01 Cat
+# Elodie CMS 1.02 Meow
 
-Elodie CMS 1.01 Cat poursuit la modernisation de UAG CMS, amorcée avec Elodie CMS 1.00, en faisant évoluer progressivement le projet vers PHP 8 et SQLite. Cette version renouvelle les interfaces publiques et administratives tout en conservant l’héritage et les données du CMS d’origine.
+Elodie CMS 1.02 Meow poursuit la modernisation de UAG CMS, amorcée avec Elodie CMS 1.00, en faisant évoluer progressivement le projet vers PHP 8 et SQLite. Cette version ajoute des pages autonomes et des menus configurables, tout en conservant l’héritage et les données du CMS d’origine.
 
 Elodie CMS est un moteur de blog que j’ai créé à l’origine pour disposer d’une solution maison adaptée à mes besoins. Je reste l’autrice originale du projet. Le code a été modernisé avec l’aide de GitHub Copilot, un outil d’assistance au développement.
 
