@@ -2,14 +2,14 @@
 
 require_once __DIR__ . '/security.php';
 
-if (!uag_is_installed()) {
+if (!elodie_cms_is_installed()) {
     header('Location: ../install.php');
     exit();
 }
 
 include('./verif.php');
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    uag_require_valid_csrf_token();
+    elodie_cms_require_valid_csrf_token();
 }
 error_reporting(0); 
 include 'langues.php';

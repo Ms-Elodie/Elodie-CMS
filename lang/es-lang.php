@@ -167,7 +167,7 @@ define('ARTICLOUI', 'Los productos que están habilitados, puede escribir o edit
 
 define('CONFIGNON', 'El servidor web debe poder escribir en el directorio <b>data</b> para usar SQLite.');
 define('IMAGESNON', 'El servidor web debe poder escribir en el directorio <b>Images</b>.');
-define('ARTICLNON', 'No se puede escribir en la base de datos SQLite <b>data/uag.sqlite</b>.');
+define('ARTICLNON', 'No se puede escribir en la base de datos SQLite <b>data/elodie-cms.sqlite</b>.');
 
 define('Liendimage', 'Voici le lien de votre image');
 ?>

@@ -45,6 +45,8 @@
 
 <li id="draggable9" class="ui-widget-content ui-corner-tr" style="text-align:center;background:none;border:none;padding-left:20px !important; padding-right:10px !important;margin-left:35px;float:left;list-style-type:none;margin-top:25px;"><div style="margin-bottom:10px;"><a href="comments.php"><h5 class="ui-widget-header" style="background:none;margin:0px;">Commentaires</h5></a></div></li>
 
-<li id="draggable7" class="ui-widget-content ui-corner-tr" style="text-align:center;background:none;border:none;padding-left:20px !important; padding-right:10px !important;margin-left:35px;float:left;list-style-type:none;margin-top:25px;"><div style="margin-bottom:10px;"><form action="deconnexion.php" method="post"><?php echo uag_csrf_input(); ?><button type="submit" title="<?php echo Deconnexion ?>"><img src="images/logout.png" alt=""><h5 class="ui-widget-header" style="background:none;margin:0px;"><?php echo Deconnexion ?></h5></button></form></div></li>
+<li id="draggable10" class="ui-widget-content ui-corner-tr" style="text-align:center;background:none;border:none;padding-left:20px !important; padding-right:10px !important;margin-left:35px;float:left;list-style-type:none;margin-top:25px;"><div style="margin-bottom:10px;"><a href="update.php"><h5 class="ui-widget-header" style="background:none;margin:0px;">Mise à jour</h5></a></div></li>
+
+<li id="draggable7" class="ui-widget-content ui-corner-tr" style="text-align:center;background:none;border:none;padding-left:20px !important; padding-right:10px !important;margin-left:35px;float:left;list-style-type:none;margin-top:25px;"><div style="margin-bottom:10px;"><form action="deconnexion.php" method="post"><?php echo elodie_cms_csrf_input(); ?><button type="submit" title="<?php echo Deconnexion ?>"><img src="images/logout.png" alt=""><h5 class="ui-widget-header" style="background:none;margin:0px;"><?php echo Deconnexion ?></h5></button></form></div></li>
 
 </ul>

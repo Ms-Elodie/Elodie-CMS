@@ -2,7 +2,12 @@
 
 require_once __DIR__ . '/storage.php';
 
-function uag_start_session(): void
+function elodie_cms_version(): string
+{
+    return '1.00';
+}
+
+function elodie_cms_start_session(): void
 {
     if (session_status() === PHP_SESSION_ACTIVE) {
         return;
@@ -19,9 +24,9 @@ function uag_start_session(): void
     session_start();
 }
 
-function uag_csrf_token(): string
+function elodie_cms_csrf_token(): string
 {
-    uag_start_session();
+    elodie_cms_start_session();
 
     if (!isset($_SESSION['csrf_token']) || !is_string($_SESSION['csrf_token'])) {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -30,16 +35,16 @@ function uag_csrf_token(): string
     return $_SESSION['csrf_token'];
 }
 
-function uag_csrf_input(): string
+function elodie_cms_csrf_input(): string
 {
     return '<input type="hidden" name="csrf_token" value="' .
-        htmlspecialchars(uag_csrf_token(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') .
+        htmlspecialchars(elodie_cms_csrf_token(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') .
         '">';
 }
 
-function uag_has_valid_csrf_token(): bool
+function elodie_cms_has_valid_csrf_token(): bool
 {
-    uag_start_session();
+    elodie_cms_start_session();
     $submitted = $_POST['csrf_token'] ?? null;
 
     return is_string($submitted)
@@ -48,17 +53,17 @@ function uag_has_valid_csrf_token(): bool
         && hash_equals($_SESSION['csrf_token'], $submitted);
 }
 
-function uag_require_valid_csrf_token(): void
+function elodie_cms_require_valid_csrf_token(): void
 {
-    if (!uag_has_valid_csrf_token()) {
+    if (!elodie_cms_has_valid_csrf_token()) {
         http_response_code(403);
         exit('Jeton de sécurité invalide.');
     }
 }
 
-function uag_store_password_hash(string $passwordHash): void
+function elodie_cms_store_password_hash(string $passwordHash): void
 {
-    $configuration = uag_read_encoded_configuration();
+    $configuration = elodie_cms_read_encoded_configuration();
     if (count($configuration) < 8) {
         throw new RuntimeException('La configuration du CMS est incomplète.');
     }
@@ -67,13 +72,13 @@ function uag_store_password_hash(string $passwordHash): void
     if ($username === false) {
         throw new RuntimeException('Le login administrateur est invalide.');
     }
-    uag_update_user_password(
+    elodie_cms_update_user_password(
         html_entity_decode($username, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
         $passwordHash
     );
 }
 
-function uag_base32_encode(string $data): string
+function elodie_cms_base32_encode(string $data): string
 {
     $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
     $binary = '';
@@ -89,7 +94,7 @@ function uag_base32_encode(string $data): string
     return $encoded;
 }
 
-function uag_base32_decode(string $encoded): string
+function elodie_cms_base32_decode(string $encoded): string
 {
     $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
     $binary = '';
@@ -111,17 +116,17 @@ function uag_base32_decode(string $encoded): string
     return $decoded;
 }
 
-function uag_totp_code_for_counter(string $secret, int $counter): string
+function elodie_cms_totp_code_for_counter(string $secret, int $counter): string
 {
     $counterBytes = pack('N2', intdiv($counter, 4294967296), $counter & 0xffffffff);
-    $hash = hash_hmac('sha1', $counterBytes, uag_base32_decode($secret), true);
+    $hash = hash_hmac('sha1', $counterBytes, elodie_cms_base32_decode($secret), true);
     $offset = ord($hash[19]) & 0x0f;
     $binaryCode = unpack('N', substr($hash, $offset, 4))[1] & 0x7fffffff;
 
     return str_pad((string) ($binaryCode % 1000000), 6, '0', STR_PAD_LEFT);
 }
 
-function uag_totp_counter_for_code(string $secret, string $submittedCode, ?int $timestamp = null): ?int
+function elodie_cms_totp_counter_for_code(string $secret, string $submittedCode, ?int $timestamp = null): ?int
 {
     if (!preg_match('/^[0-9]{6}$/', $submittedCode)) {
         return null;
@@ -131,7 +136,7 @@ function uag_totp_counter_for_code(string $secret, string $submittedCode, ?int $
     $currentCounter = intdiv($now, 30);
     foreach ([-1, 0, 1] as $counterOffset) {
         $counter = $currentCounter + $counterOffset;
-        if (hash_equals(uag_totp_code_for_counter($secret, $counter), $submittedCode)) {
+        if (hash_equals(elodie_cms_totp_code_for_counter($secret, $counter), $submittedCode)) {
             return $counter;
         }
     }
@@ -139,19 +144,19 @@ function uag_totp_counter_for_code(string $secret, string $submittedCode, ?int $
     return null;
 }
 
-function uag_verify_totp(string $secret, string $submittedCode, ?int $timestamp = null): bool
+function elodie_cms_verify_totp(string $secret, string $submittedCode, ?int $timestamp = null): bool
 {
-    return uag_totp_counter_for_code($secret, $submittedCode, $timestamp) !== null;
+    return elodie_cms_totp_counter_for_code($secret, $submittedCode, $timestamp) !== null;
 }
 
-function uag_accept_totp_code(string $username, string $secret, string $submittedCode): bool
+function elodie_cms_accept_totp_code(string $username, string $secret, string $submittedCode): bool
 {
-    $counter = uag_totp_counter_for_code($secret, trim($submittedCode));
+    $counter = elodie_cms_totp_counter_for_code($secret, trim($submittedCode));
     if ($counter === null) {
         return false;
     }
 
-    $statement = uag_database()->prepare(
+    $statement = elodie_cms_database()->prepare(
         'UPDATE users SET totp_last_counter = :counter
          WHERE username = :username AND totp_secret = :secret
             AND (totp_last_counter IS NULL OR totp_last_counter < :counter)'
@@ -165,7 +170,7 @@ function uag_accept_totp_code(string $username, string $secret, string $submitte
     return $statement->rowCount() === 1;
 }
 
-function uag_generate_recovery_codes(): array
+function elodie_cms_generate_recovery_codes(): array
 {
     $codes = [];
     for ($index = 0; $index < 10; $index++) {
@@ -175,9 +180,9 @@ function uag_generate_recovery_codes(): array
     return $codes;
 }
 
-function uag_store_recovery_codes(string $username, array $codes): void
+function elodie_cms_store_recovery_codes(string $username, array $codes): void
 {
-    $database = uag_database();
+    $database = elodie_cms_database();
     $database->beginTransaction();
     try {
         $delete = $database->prepare('DELETE FROM recovery_codes WHERE username = :username');
@@ -200,9 +205,9 @@ function uag_store_recovery_codes(string $username, array $codes): void
     }
 }
 
-function uag_consume_recovery_code(string $username, string $submittedCode): bool
+function elodie_cms_consume_recovery_code(string $username, string $submittedCode): bool
 {
-    $database = uag_database();
+    $database = elodie_cms_database();
     $statement = $database->prepare(
         'SELECT code_hash FROM recovery_codes WHERE username = :username AND used_at IS NULL'
     );
@@ -227,12 +232,12 @@ function uag_consume_recovery_code(string $username, string $submittedCode): boo
     return false;
 }
 
-function uag_login_rate_limited(string $username): bool
+function elodie_cms_login_rate_limited(string $username): bool
 {
     $remoteAddress = is_string($_SERVER['REMOTE_ADDR'] ?? null) ? $_SERVER['REMOTE_ADDR'] : '';
     $accountSubject = hash('sha256', 'account|' . strtolower($username));
     $ipSubject = hash('sha256', 'ip|' . $remoteAddress);
-    $database = uag_database();
+    $database = elodie_cms_database();
     $prune = $database->prepare('DELETE FROM login_attempts WHERE attempted_at < :cutoff');
     $prune->execute(['cutoff' => time() - 900]);
     $count = $database->prepare(
@@ -245,9 +250,9 @@ function uag_login_rate_limited(string $username): bool
     return $accountAttempts >= 10 || (int) $count->fetchColumn() >= 20;
 }
 
-function uag_record_login_failure(string $username): void
+function elodie_cms_record_login_failure(string $username): void
 {
-    $statement = uag_database()->prepare(
+    $statement = elodie_cms_database()->prepare(
         'INSERT INTO login_attempts (subject_hash, attempted_at) VALUES (:subject_hash, :attempted_at)'
     );
     $remoteAddress = is_string($_SERVER['REMOTE_ADDR'] ?? null) ? $_SERVER['REMOTE_ADDR'] : '';
@@ -259,9 +264,9 @@ function uag_record_login_failure(string $username): void
     }
 }
 
-function uag_clear_login_failures(string $username): void
+function elodie_cms_clear_login_failures(string $username): void
 {
-    $statement = uag_database()->prepare(
+    $statement = elodie_cms_database()->prepare(
         'DELETE FROM login_attempts WHERE subject_hash = :subject_hash'
     );
     $statement->execute([
@@ -269,22 +274,22 @@ function uag_clear_login_failures(string $username): void
     ]);
 }
 
-function uag_escape(string $value): string
+function elodie_cms_escape(string $value): string
 {
     return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
-function uag_escape_xml(string $value): string
+function elodie_cms_escape_xml(string $value): string
 {
     return htmlspecialchars($value, ENT_XML1 | ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
-function uag_escape_legacy_text(string $value): string
+function elodie_cms_escape_legacy_text(string $value): string
 {
-    return uag_escape(html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+    return elodie_cms_escape(html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
 }
 
-function uag_post_string(string $key): string
+function elodie_cms_post_string(string $key): string
 {
     $value = $_POST[$key] ?? null;
     if (!is_string($value)) {
@@ -294,7 +299,7 @@ function uag_post_string(string $key): string
     return trim($value);
 }
 
-function uag_valid_article_date(string $year, string $month, string $day): bool
+function elodie_cms_valid_article_date(string $year, string $month, string $day): bool
 {
     if (!ctype_digit($year) || !ctype_digit($month) || !ctype_digit($day)) {
         return false;
@@ -306,7 +311,7 @@ function uag_valid_article_date(string $year, string $month, string $day): bool
         && checkdate((int) $month, (int) $day, $yearValue);
 }
 
-function uag_valid_http_url(string $url): bool
+function elodie_cms_valid_http_url(string $url): bool
 {
     $parts = parse_url($url);
     return filter_var($url, FILTER_VALIDATE_URL) !== false
@@ -317,14 +322,14 @@ function uag_valid_http_url(string $url): bool
         && !isset($parts['pass']);
 }
 
-function uag_valid_url_setting(string $url): bool
+function elodie_cms_valid_url_setting(string $url): bool
 {
     if ($url === '') {
         return true;
     }
 
     if (preg_match('~^https?://~i', $url)) {
-        return uag_valid_http_url($url);
+        return elodie_cms_valid_http_url($url);
     }
 
     return !preg_match('/[\x00-\x20\\\\]/', $url)
@@ -332,7 +337,7 @@ function uag_valid_url_setting(string $url): bool
         && !str_starts_with($url, '//');
 }
 
-function uag_sanitize_article_html(string $html): string
+function elodie_cms_sanitize_article_html(string $html): string
 {
     if (!class_exists(DOMDocument::class)) {
         throw new RuntimeException('L’extension PHP DOM est nécessaire pour sécuriser les articles.');
@@ -341,19 +346,19 @@ function uag_sanitize_article_html(string $html): string
     $document = new DOMDocument('1.0', 'UTF-8');
     $previous = libxml_use_internal_errors(true);
     $loaded = $document->loadHTML(
-        '<?xml encoding="UTF-8"><div id="uag-article">' . $html . '</div>',
+        '<?xml encoding="UTF-8"><div id="elodie-cms-article">' . $html . '</div>',
         LIBXML_NONET | LIBXML_HTML_NODEFDTD
     );
     libxml_clear_errors();
     libxml_use_internal_errors($previous);
 
     if (!$loaded) {
-        return uag_escape($html);
+        return elodie_cms_escape($html);
     }
 
-    $container = $document->getElementById('uag-article');
+    $container = $document->getElementById('elodie-cms-article');
     if (!$container) {
-        return uag_escape($html);
+        return elodie_cms_escape($html);
     }
 
     $allowedTags = [

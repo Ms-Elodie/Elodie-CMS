@@ -167,7 +167,7 @@ define('ARTICLOUI', 'Items worden ingeschakeld, kunt u schrijven of bewerken van
 
 define('CONFIGNON', 'De webserver moet naar de map <b>data</b> kunnen schrijven voor SQLite.');
 define('IMAGESNON', 'De webserver moet naar de map <b>Images</b> kunnen schrijven.');
-define('ARTICLNON', 'De SQLite-database <b>data/uag.sqlite</b> is niet beschrijfbaar.');
+define('ARTICLNON', 'De SQLite-database <b>data/elodie-cms.sqlite</b> is niet beschrijfbaar.');
 
 
 ?>

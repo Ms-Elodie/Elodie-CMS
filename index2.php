@@ -5,35 +5,35 @@ require 'admin/fonctions.php';
 
 function lire_array($fichier)
 {
-return uag_read_encoded_configuration();
+return elodie_cms_read_encoded_configuration();
 }
 $fichier='admin/configuration.txt'; 
 $tableau=array();
 $tableau=lire_array($fichier);
 error_reporting(0);
 
-if (!uag_is_installed()) {
+if (!elodie_cms_is_installed()) {
     header('Location: install.php');
     exit();
 }
 
 ob_start('ob_gzhandler'); register_shutdown_function('ob_end_flush');
 
-$allnews = uag_read_news(__DIR__ . '/news.php');
+$allnews = elodie_cms_read_news(__DIR__ . '/news.php');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['comment_submit'] ?? '') === '1') {
-    if (!uag_comments_enabled()) {
+    if (!elodie_cms_comments_enabled()) {
         http_response_code(404);
         exit('Les commentaires sont désactivés.');
     }
-    uag_require_valid_csrf_token();
+    elodie_cms_require_valid_csrf_token();
     $articleId = public_article_id($allnews);
     if ($articleId === null || !array_key_exists($articleId, $allnews)) {
         http_response_code(404);
         exit('Article introuvable.');
     }
-    $author = uag_post_string('author');
-    $body = trim(uag_post_string('body'));
+    $author = elodie_cms_post_string('author');
+    $body = trim(elodie_cms_post_string('body'));
     if ($author === '' || strlen($author) > 120 || preg_match('/[\x00-\x1F\x7F]/', $author)
         || $body === '' || strlen($body) > 5000
         || preg_match('//u', $author) !== 1 || preg_match('//u', $body) !== 1
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['comment_submit'] ?? '') ==
         exit('Le nom ou le commentaire est invalide (120 et 5 000 octets maximum).');
     }
     $remoteAddress = is_string($_SERVER['REMOTE_ADDR'] ?? null) ? $_SERVER['REMOTE_ADDR'] : '';
-    if (!uag_add_comment($articleId, $author, $body, $remoteAddress)) {
+    if (!elodie_cms_add_comment($articleId, $author, $body, $remoteAddress)) {
         http_response_code(429);
         exit('Limite de commentaires atteinte. Réessayez dans quelques minutes.');
     }
@@ -66,7 +66,7 @@ if (!in_array($language, ['fr', 'en', 'es', 'nl'], true)) {
 }
 include __DIR__ . '/lang/' . $language . '-lang.php';
 
-echo'<!DOCTYPE html><!-- Systeme de Pagination Par Qwerty : http://etudiant-libre.fr.nf/ --> <html lang="'.uag_escape($language).'"><head>';
+echo'<!DOCTYPE html><!-- Systeme de Pagination Par Qwerty : http://etudiant-libre.fr.nf/ --> <html lang="'.elodie_cms_escape($language).'"><head>';
 
 switch (is_string($_GET['module'] ?? null) ? $_GET['module'] : '')
 {
@@ -82,7 +82,7 @@ echo'
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="Generator" content="Elodie CMS" />
+<meta name="Generator" content="Elodie CMS '.elodie_cms_escape(elodie_cms_version()).'" />
 <link rel="alternate" type="application/rss+xml" title="flux rss" href="rss.php" />
 <link rel="stylesheet" type="text/css" href="'.base64_decode($tableau[5]).'/style.css" />';
 

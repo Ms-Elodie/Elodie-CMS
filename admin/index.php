@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/security.php';
 
-if (!uag_is_installed()) {
+if (!elodie_cms_is_installed()) {
     header('Location: ../install.php');
     exit();
 }
@@ -18,7 +18,7 @@ echo'
 <head>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <meta http-equiv="x-ua-compatible" content="ie=edge" />
-<title>Elodie CMS</title>
+<title>Elodie CMS '.elodie_cms_escape(elodie_cms_version()).'</title>
 <meta name="Description" content="Administration de Elodie CMS" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -284,7 +284,7 @@ include('chat.php');
 echo'</div>';
 
 echo'</div>
-<div id="header">Elodie CMS
+<div id="header">Elodie CMS '.elodie_cms_escape(elodie_cms_version()).'
 ';
 
 include('includes/centre.php'); 

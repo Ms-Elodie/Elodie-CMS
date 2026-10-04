@@ -1,6 +1,6 @@
 <?php
 
-function uag_database(): PDO
+function elodie_cms_database(): PDO
 {
     static $database;
     if ($database instanceof PDO) {
@@ -21,7 +21,20 @@ function uag_database(): PDO
         throw new RuntimeException('Impossible de restreindre les permissions du répertoire SQLite.');
     }
 
-    $databasePath = $dataDirectory . '/uag.sqlite';
+    $databasePath = $dataDirectory . '/elodie-cms.sqlite';
+    $legacyDatabasePath = $dataDirectory . '/uag.sqlite';
+    if (!is_file($databasePath) && is_file($legacyDatabasePath)) {
+        $legacyDatabase = new PDO('sqlite:' . $legacyDatabasePath, null, null, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        ]);
+        $quotedDatabasePath = $legacyDatabase->quote($databasePath);
+        if (!is_string($quotedDatabasePath)) {
+            throw new RuntimeException('Impossible de préparer la migration de la base SQLite historique.');
+        }
+        $legacyDatabase->exec('VACUUM INTO ' . $quotedDatabasePath);
+        unset($legacyDatabase);
+    }
+
     $database = new PDO('sqlite:' . $databasePath, null, null, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -94,13 +107,13 @@ function uag_database(): PDO
         )'
     );
     $database->exec('CREATE INDEX IF NOT EXISTS comment_rate_limits_remote_time ON comment_rate_limits(remote_hash, attempted_at)');
-    uag_migrate_legacy_data($database);
-    uag_disable_legacy_comment_service($database);
+    elodie_cms_migrate_legacy_data($database);
+    elodie_cms_disable_legacy_comment_service($database);
 
     return $database;
 }
 
-function uag_disable_legacy_comment_service(PDO $database): void
+function elodie_cms_disable_legacy_comment_service(PDO $database): void
 {
     if ($database->query('SELECT 1 FROM settings WHERE setting_key = -2')->fetchColumn()) {
         return;
@@ -126,7 +139,7 @@ function uag_disable_legacy_comment_service(PDO $database): void
     }
 }
 
-function uag_migrate_legacy_data(PDO $database): void
+function elodie_cms_migrate_legacy_data(PDO $database): void
 {
     $alreadyMigrated = $database->query("SELECT 1 FROM settings WHERE setting_key = -1")->fetchColumn();
     if ($alreadyMigrated) {
@@ -227,10 +240,10 @@ function uag_migrate_legacy_data(PDO $database): void
     }
 }
 
-function uag_read_encoded_configuration(): array
+function elodie_cms_read_encoded_configuration(): array
 {
     $configuration = array_fill(0, 32, '');
-    $statement = uag_database()->query('SELECT setting_key, setting_value FROM settings WHERE setting_key >= 0');
+    $statement = elodie_cms_database()->query('SELECT setting_key, setting_value FROM settings WHERE setting_key >= 0');
     foreach ($statement as $row) {
         $configuration[(int) $row['setting_key']] = base64_encode($row['setting_value']);
     }
@@ -238,7 +251,7 @@ function uag_read_encoded_configuration(): array
     return $configuration;
 }
 
-function uag_write_encoded_configuration(array $values): void
+function elodie_cms_write_encoded_configuration(array $values): void
 {
     if (count($values) < 32) {
         throw new InvalidArgumentException('La configuration doit contenir 32 valeurs.');
@@ -256,7 +269,7 @@ function uag_write_encoded_configuration(array $values): void
         $settings[$index] = $decoded;
     }
 
-    $database = uag_database();
+    $database = elodie_cms_database();
     $database->beginTransaction();
     try {
         $previousSetting = $database->query('SELECT setting_value FROM settings WHERE setting_key = 6')->fetchColumn();
@@ -303,18 +316,18 @@ function uag_write_encoded_configuration(array $values): void
     }
 }
 
-function uag_user(string $username): ?array
+function elodie_cms_user(string $username): ?array
 {
-    $statement = uag_database()->prepare('SELECT * FROM users WHERE username = :username');
+    $statement = elodie_cms_database()->prepare('SELECT * FROM users WHERE username = :username');
     $statement->execute(['username' => $username]);
     $user = $statement->fetch();
 
     return $user === false ? null : $user;
 }
 
-function uag_enable_totp(string $username, string $secret, int $lastCounter, array $recoveryCodes): void
+function elodie_cms_enable_totp(string $username, string $secret, int $lastCounter, array $recoveryCodes): void
 {
-    $database = uag_database();
+    $database = elodie_cms_database();
     $database->beginTransaction();
     try {
         $user = $database->prepare(
@@ -346,9 +359,9 @@ function uag_enable_totp(string $username, string $secret, int $lastCounter, arr
     }
 }
 
-function uag_update_user_password(string $username, string $passwordHash): void
+function elodie_cms_update_user_password(string $username, string $passwordHash): void
 {
-    $database = uag_database();
+    $database = elodie_cms_database();
     $database->beginTransaction();
     try {
         $statement = $database->prepare(
@@ -373,10 +386,10 @@ function uag_update_user_password(string $username, string $passwordHash): void
     }
 }
 
-function uag_read_news(string $legacyPath = ''): array
+function elodie_cms_read_news(string $legacyPath = ''): array
 {
     $articles = [];
-    $statement = uag_database()->query(
+    $statement = elodie_cms_database()->query(
         'SELECT id, title, day, month, year, content, excerpt, rating FROM articles ORDER BY id ASC'
     );
     foreach ($statement as $row) {
@@ -394,9 +407,9 @@ function uag_read_news(string $legacyPath = ''): array
     return $articles;
 }
 
-function uag_write_news(string $legacyPath, array $articles): void
+function elodie_cms_write_news(string $legacyPath, array $articles): void
 {
-    $database = uag_database();
+    $database = elodie_cms_database();
     $database->beginTransaction();
     try {
         $database->exec('DELETE FROM articles');
@@ -436,9 +449,9 @@ function uag_write_news(string $legacyPath, array $articles): void
     }
 }
 
-function uag_is_installed(): bool
+function elodie_cms_is_installed(): bool
 {
-    $settings = uag_read_encoded_configuration();
+    $settings = elodie_cms_read_encoded_configuration();
     $username = base64_decode($settings[6] ?? '', true);
     $passwordHash = base64_decode($settings[7] ?? '', true);
 
@@ -446,16 +459,16 @@ function uag_is_installed(): bool
         && $passwordHash !== false && $passwordHash !== '';
 }
 
-function uag_comments_enabled(): bool
+function elodie_cms_comments_enabled(): bool
 {
-    $statement = uag_database()->query('SELECT setting_value FROM settings WHERE setting_key = 3');
+    $statement = elodie_cms_database()->query('SELECT setting_value FROM settings WHERE setting_key = 3');
 
     return $statement->fetchColumn() === 'on';
 }
 
-function uag_add_comment(int $articleId, string $author, string $body, string $remoteAddress): bool
+function elodie_cms_add_comment(int $articleId, string $author, string $body, string $remoteAddress): bool
 {
-    $database = uag_database();
+    $database = elodie_cms_database();
     $remoteHash = hash('sha256', 'comment|' . $remoteAddress);
     $cutoff = time() - 900;
     $database->beginTransaction();
@@ -497,9 +510,9 @@ function uag_add_comment(int $articleId, string $author, string $body, string $r
     }
 }
 
-function uag_comments_for_article(int $articleId): array
+function elodie_cms_comments_for_article(int $articleId): array
 {
-    $statement = uag_database()->prepare(
+    $statement = elodie_cms_database()->prepare(
         'SELECT author, body, created_at FROM comments
          WHERE article_id = :article_id AND status = \'approved\' ORDER BY id ASC'
     );
@@ -508,12 +521,12 @@ function uag_comments_for_article(int $articleId): array
     return $statement->fetchAll();
 }
 
-function uag_list_comments(string $status): array
+function elodie_cms_list_comments(string $status): array
 {
     if (!in_array($status, ['pending', 'approved'], true)) {
         throw new InvalidArgumentException('Le statut des commentaires est invalide.');
     }
-    $statement = uag_database()->prepare(
+    $statement = elodie_cms_database()->prepare(
         'SELECT id, article_id, author, body, status, created_at FROM comments
          WHERE status = :status ORDER BY id DESC'
     );
@@ -522,12 +535,12 @@ function uag_list_comments(string $status): array
     return $statement->fetchAll();
 }
 
-function uag_set_comment_status(int $commentId, string $status): void
+function elodie_cms_set_comment_status(int $commentId, string $status): void
 {
     if (!in_array($status, ['pending', 'approved'], true)) {
         throw new InvalidArgumentException('Le statut des commentaires est invalide.');
     }
-    $statement = uag_database()->prepare(
+    $statement = elodie_cms_database()->prepare(
         'UPDATE comments SET status = :status WHERE id = :id'
     );
     $statement->execute(['status' => $status, 'id' => $commentId]);
@@ -536,9 +549,9 @@ function uag_set_comment_status(int $commentId, string $status): void
     }
 }
 
-function uag_delete_comment(int $commentId): void
+function elodie_cms_delete_comment(int $commentId): void
 {
-    $statement = uag_database()->prepare('DELETE FROM comments WHERE id = :id');
+    $statement = elodie_cms_database()->prepare('DELETE FROM comments WHERE id = :id');
     $statement->execute(['id' => $commentId]);
     if ($statement->rowCount() !== 1) {
         throw new RuntimeException('Le commentaire demandé est introuvable.');
