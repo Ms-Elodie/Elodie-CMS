@@ -1,0 +1,304 @@
+:root {
+    color-scheme: light;
+    --admin-ink: #172033;
+    --admin-muted: #526078;
+    --admin-brand: #173b67;
+    --admin-brand-dark: #102b4b;
+    --admin-border: #d4dce7;
+    --admin-surface: #fff;
+    --admin-background: #eef2f7;
+    --admin-focus: #f2b705;
+}
+
+html {
+    min-height: 100%;
+    background: var(--admin-background);
+    background-attachment: scroll;
+}
+
+body {
+    color: var(--admin-ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+:focus-visible {
+    outline: 3px solid var(--admin-focus);
+    outline-offset: 2px;
+}
+
+#page {
+    width: 100%;
+    max-width: 78rem;
+    padding-bottom: 2rem;
+}
+
+#header {
+    position: sticky;
+    z-index: 20;
+    top: 0;
+    padding: .85rem 1rem;
+    background: var(--admin-brand-dark);
+    color: #fff;
+    font-size: 1.15rem;
+    text-align: left;
+}
+
+#header2 {
+    position: static;
+    min-height: 1.25rem;
+    padding: .25rem .75rem;
+    background: var(--admin-brand);
+    color: #fff;
+    font-size: .75rem;
+    text-align: right;
+}
+
+#gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+    gap: .65rem;
+    width: auto;
+    margin: 1rem;
+    padding: 0;
+}
+
+#gallery > li {
+    float: none !important;
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 6.5rem;
+    margin: 0 !important;
+    padding: .5rem !important;
+    border: 1px solid var(--admin-border) !important;
+    border-radius: .8rem;
+    background: var(--admin-surface) !important;
+    box-shadow: 0 2px 7px rgb(23 32 51 / 8%);
+    color: var(--admin-ink);
+    cursor: pointer;
+    text-align: center;
+    touch-action: manipulation;
+}
+
+#gallery > li:hover,
+#gallery > li:focus-within {
+    border-color: var(--admin-brand) !important;
+    box-shadow: 0 3px 12px rgb(23 59 103 / 16%);
+}
+
+#gallery > li [id^="opener"] {
+    min-height: 5rem;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+#gallery > li > div,
+#gallery > li > div > div,
+#gallery > li > div > a {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .35rem;
+    margin: 0 !important;
+}
+
+#gallery > li h5 {
+    margin: 0 !important;
+    color: var(--admin-ink);
+    font-family: inherit;
+    font-size: .9rem;
+    font-weight: 650;
+    letter-spacing: 0;
+}
+
+#gallery > li img {
+    width: 2rem;
+    height: 2rem;
+    margin: 0 !important;
+    padding: 0 !important;
+    object-fit: contain;
+}
+
+#gallery > li a,
+#gallery > li a:visited {
+    color: inherit;
+}
+
+#gallery > li form {
+    display: contents;
+    width: auto;
+}
+
+#gallery > li button {
+    display: flex;
+    width: 100%;
+    min-height: 4.25rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .35rem;
+    margin: 0;
+    padding: .25rem;
+    border: 0;
+    background: transparent;
+    color: var(--admin-ink);
+    cursor: pointer;
+}
+
+#contenu2 {
+    width: auto;
+    max-width: 100%;
+    margin: 0;
+    padding: 1rem;
+}
+
+#contenu2 > * {
+    max-width: 100%;
+}
+
+#contenu2 form {
+    width: 100%;
+    max-width: 64rem;
+}
+
+#contenu2 input:not([type="checkbox"]):not([type="radio"]),
+#contenu2 select,
+#contenu2 textarea,
+#contenu2 button,
+.ui-dialog-content input:not([type="checkbox"]):not([type="radio"]),
+.ui-dialog-content select,
+.ui-dialog-content textarea,
+.ui-dialog-content button {
+    box-sizing: border-box;
+    max-width: 100%;
+    min-height: 2.75rem;
+}
+
+#contenu2 textarea,
+.ui-dialog-content textarea {
+    min-height: 9rem;
+}
+
+table {
+    max-width: 100%;
+}
+
+img,
+iframe,
+video {
+    max-width: 100%;
+}
+
+.ui-dialog {
+    box-sizing: border-box;
+    max-width: calc(100vw - 1rem) !important;
+}
+
+.ui-dialog-content {
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+.ui-dialog-content iframe {
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+@media (max-width: 700px) {
+    #header {
+        font-size: 1.05rem;
+    }
+
+    #gallery {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .5rem;
+        margin: .75rem;
+    }
+
+    #gallery > li {
+        min-height: 6rem;
+        border-radius: .65rem;
+    }
+
+    #contenu2 {
+        padding: .75rem;
+    }
+
+    #contenu2 table,
+    .ui-dialog-content table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    #contenu2 td,
+    #contenu2 th,
+    .ui-dialog-content td,
+    .ui-dialog-content th {
+        padding: .5rem;
+    }
+
+    .ui-dialog {
+        position: fixed !important;
+        top: .5rem !important;
+        left: .5rem !important;
+        width: calc(100vw - 1rem) !important;
+        height: calc(100dvh - 1rem) !important;
+        max-width: calc(100vw - 1rem) !important;
+        max-height: calc(100dvh - 1rem) !important;
+        margin: 0 !important;
+        overflow: hidden;
+    }
+
+    .ui-dialog-titlebar {
+        box-sizing: border-box;
+        min-height: 3rem;
+        padding: .75rem 3rem .75rem .85rem !important;
+        line-height: 1.4;
+    }
+
+    .ui-dialog-content {
+        box-sizing: border-box;
+        width: 100% !important;
+        height: calc(100% - 3rem) !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        padding: .75rem !important;
+        overflow: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .ui-dialog-content iframe {
+        width: 100% !important;
+        min-width: 0 !important;
+        height: 100% !important;
+        min-height: 50vh !important;
+    }
+
+    #dialog_window_minimized_container {
+        right: .5rem;
+        bottom: .5rem;
+        left: .5rem;
+        z-index: 30;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+    }
+}

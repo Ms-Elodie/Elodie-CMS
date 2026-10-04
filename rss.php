@@ -27,6 +27,7 @@ $xml .= '<language>fr</language>'."\n";
 $xml .= '<copyright></copyright>'."\n";
 
 $liste = elodie_cms_read_news(__DIR__ . '/news.php');
+$articleIds = array_keys($liste);
 krsort($liste);
 
 foreach ($liste as $file => $article) {
@@ -47,11 +48,13 @@ if ($date === false || $date->format('Y-m-d') !== sprintf('%04d-%02d-%02d', (int
 }
 
 $item = '<item>'."\n";
+$articlePosition = array_search($file, $articleIds, true);
+$articlePosition = $articlePosition === false ? 1 : $articlePosition + 1;
 $title = is_string($article['titre'] ?? null) ? html_entity_decode($article['titre'], ENT_QUOTES | ENT_HTML5, 'UTF-8') : '';
 $content = is_string($article['contenu'] ?? null) ? elodie_cms_sanitize_article_html($article['contenu']) : '';
 $item .= '<title>'.elodie_cms_escape_xml($title).'</title>'."\n";
 $item .= '<guid isPermaLink="false">article-'.((int) $file + 1).'</guid>'."\n";
-$item .= '<link>'.elodie_cms_escape_xml(rtrim($siteUrl, '/').'/article-'.((int) $file + 1).'.php').'</link>'."\n";
+$item .= '<link>'.elodie_cms_escape_xml(rtrim($siteUrl, '/').'/index2.php?module=articles&page='.$articlePosition).'</link>'."\n";
 $item .= '<pubDate>'.$date->format(DATE_RSS).'</pubDate>'."\n";
 $item .= '<description>'.elodie_cms_escape_xml($content).'</description>'."\n";
 $xml .= $item.'</item>'."\n";

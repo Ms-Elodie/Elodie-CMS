@@ -20,6 +20,8 @@ Cette version conserve l’interface existante et migre automatiquement les rég
 - Les mots de passe SHA-1 des anciennes installations de 72 octets ou moins sont migrés vers un hachage moderne à la première connexion réussie. Pour un ancien mot de passe plus long, connectez-vous puis définissez-en un nouveau dans les réglages.
 - Les articles conservent leur mise en forme, mais leur HTML est assaini à l’enregistrement et à l’affichage. Les émoticônes historiques sont converties en emojis Unicode actuels ; les nouveaux emojis s’affichent directement avec la police emoji du système.
 - L’affichage utilise les polices déjà disponibles sur l’appareil, sans chargement de police depuis un service externe.
+- L’administration s’adapte aux écrans mobiles avec des commandes tactiles, des formulaires fluides et des fenêtres de travail adaptées à la taille de l’écran.
+- Le site public présente maintenant les articles sous la forme d’un blog classique, avec une page d’accueil éditoriale, des archives paginées, des pages d’article, un lien RSS et une section « À propos » ; l’ancienne interface publique façon système de bureau est retirée.
 - Les scripts, iframes et SVG téléversés ne sont pas acceptés.
 - Les commentaires internes sont désactivés par défaut. Vous pouvez les activer dans les réglages ; les nouveaux messages sont conservés dans SQLite et doivent être approuvés depuis l’administration avant publication. Leur soumission est limitée afin de réduire le spam.
 - Depuis l’administration, vous pouvez demander une vérification des dernières versions publiées sur GitHub. Cette vérification manuelle ne télécharge et n’installe aucun fichier automatiquement ; si une version plus récente existe, le CMS affiche un lien vers ses notes de version.

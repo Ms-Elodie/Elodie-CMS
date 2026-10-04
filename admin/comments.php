@@ -37,6 +37,7 @@ $approvedComments = elodie_cms_list_comments('approved');
     <title>Modération des commentaires - Elodie CMS</title>
     <link rel="stylesheet" href="defaut.css">
     <link rel="stylesheet" href="defaut2.css">
+    <link rel="stylesheet" href="mobile.css">
     <style>
         body { max-width: 70rem; margin: 1rem auto; padding: 0 1rem; }
         .comment-card { margin: 1rem 0; padding: 1rem; border: 1px solid #aaa; background: #fff; }

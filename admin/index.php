@@ -30,6 +30,7 @@ echo'
 <script src="js/jquery.min.js"></script>
 <script src="js/jquery-ui.min.js"></script>
 <script src="js/jquery.coda-slider-3.0.js"></script>';
+echo '<link rel="stylesheet" href="mobile.css" />';
 
 ?>
 
@@ -114,7 +115,7 @@ echo'
         $(function(){
             setInterval(function(){
                 $(\'#ajax-refresh\').load(\'chat.php\');
-            }, 0);
+            }, 30000);
         });
     </script>
 	

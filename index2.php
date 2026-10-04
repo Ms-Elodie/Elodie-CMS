@@ -1,25 +1,37 @@
 <?php
 
 require_once __DIR__ . '/admin/security.php';
-require 'admin/fonctions.php'; 
-
-function lire_array($fichier)
-{
-return elodie_cms_read_encoded_configuration();
-}
-$fichier='admin/configuration.txt'; 
-$tableau=array();
-$tableau=lire_array($fichier);
-error_reporting(0);
+require_once __DIR__ . '/admin/fonctions.php';
 
 if (!elodie_cms_is_installed()) {
     header('Location: install.php');
     exit();
 }
 
-ob_start('ob_gzhandler'); register_shutdown_function('ob_end_flush');
+$settings = elodie_cms_read_encoded_configuration();
+$allArticles = elodie_cms_read_news();
+$articleIds = array_keys($allArticles);
+$siteLanguage = base64_decode($settings[1] ?? '', true);
+if (!in_array($siteLanguage, ['fr', 'en', 'es', 'nl'], true)) {
+    $siteLanguage = 'fr';
+}
 
-$allnews = elodie_cms_read_news(__DIR__ . '/news.php');
+$siteName = base64_decode($settings[0] ?? '', true);
+$siteName = $siteName === false ? 'Elodie CMS' : elodie_cms_escape_legacy_text($siteName);
+$logoUrl = base64_decode($settings[26] ?? '', true);
+$logoAlt = base64_decode($settings[27] ?? '', true);
+$logoUrl = is_string($logoUrl) && elodie_cms_valid_url_setting($logoUrl) ? $logoUrl : '';
+$logoAlt = $logoAlt === false || $logoAlt === '' ? $siteName : elodie_cms_escape_legacy_text($logoAlt);
+$authorFirstName = base64_decode($settings[11] ?? '', true);
+$authorLastName = base64_decode($settings[12] ?? '', true);
+$authorName = trim(
+    ($authorFirstName === false ? '' : html_entity_decode($authorFirstName, ENT_QUOTES | ENT_HTML5, 'UTF-8'))
+    . ' '
+    . ($authorLastName === false ? '' : html_entity_decode($authorLastName, ENT_QUOTES | ENT_HTML5, 'UTF-8'))
+);
+$authorActivity = base64_decode($settings[19] ?? '', true);
+$authorBio = base64_decode($settings[20] ?? '', true);
+$authorInterests = base64_decode($settings[21] ?? '', true);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['comment_submit'] ?? '') === '1') {
     if (!elodie_cms_comments_enabled()) {
@@ -27,11 +39,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['comment_submit'] ?? '') ==
         exit('Les commentaires sont désactivés.');
     }
     elodie_cms_require_valid_csrf_token();
-    $articleId = public_article_id($allnews);
-    if ($articleId === null || !array_key_exists($articleId, $allnews)) {
+    $articleId = public_article_id($allArticles);
+    if ($articleId === null || !array_key_exists($articleId, $allArticles)) {
         http_response_code(404);
         exit('Article introuvable.');
     }
+
     $author = elodie_cms_post_string('author');
     $body = trim(elodie_cms_post_string('body'));
     if ($author === '' || strlen($author) > 120 || preg_match('/[\x00-\x1F\x7F]/', $author)
@@ -41,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['comment_submit'] ?? '') ==
         http_response_code(400);
         exit('Le nom ou le commentaire est invalide (120 et 5 000 octets maximum).');
     }
+
     $remoteAddress = is_string($_SERVER['REMOTE_ADDR'] ?? null) ? $_SERVER['REMOTE_ADDR'] : '';
     if (!elodie_cms_add_comment($articleId, $author, $body, $remoteAddress)) {
         http_response_code(429);
@@ -50,100 +64,191 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['comment_submit'] ?? '') ==
     exit();
 }
 
-$nb_messagetotal = count($allnews);
-
-$nbPages = ceil($nb_messagetotal / 1);
-
+$module = is_string($_GET['module'] ?? null) ? $_GET['module'] : 'home';
 $requestedPage = $_GET['page'] ?? null;
 $page = is_string($requestedPage) && ctype_digit($requestedPage)
-    ? max(0, min($nbPages - 1, (int) $requestedPage - 1))
-    : 0;
-$liste_news = array_slice($allnews, $page, 1);
+    ? max(1, (int) $requestedPage)
+    : 1;
+$article = null;
+$articlePage = null;
 
-$language = base64_decode($tableau[1] ?? '', true);
-if (!in_array($language, ['fr', 'en', 'es', 'nl'], true)) {
-    $language = 'fr';
+if ($module === 'articles' && $allArticles !== []) {
+    $articleId = public_article_id($allArticles);
+    if ($articleId !== null && isset($allArticles[$articleId])) {
+        $article = $allArticles[$articleId];
+        $articlePage = array_search($articleId, $articleIds, true);
+        $articlePage = $articlePage === false ? null : $articlePage + 1;
+    }
 }
-include __DIR__ . '/lang/' . $language . '-lang.php';
 
-echo'<!DOCTYPE html><!-- Systeme de Pagination Par Qwerty : http://etudiant-libre.fr.nf/ --> <html lang="'.elodie_cms_escape($language).'"><head>';
+$postsPerPage = 6;
+$newestFirst = $allArticles;
+krsort($newestFirst);
+$totalPages = max(1, (int) ceil(count($newestFirst) / $postsPerPage));
+$archivePage = min($page, $totalPages);
+$archiveItems = array_slice($newestFirst, ($archivePage - 1) * $postsPerPage, $postsPerPage, true);
 
-switch (is_string($_GET['module'] ?? null) ? $_GET['module'] : '')
+$pageTitle = $siteName;
+if ($article !== null) {
+    $pageTitle = elodie_cms_escape_legacy_text($article['titre']) . ' - ' . $siteName;
+} elseif ($module === 'about') {
+    $pageTitle = 'À propos - ' . $siteName;
+}
+
+function elodie_cms_blog_date(array $article, string $language): string
 {
+    $year = $article['annee'] ?? '';
+    $month = $article['mois'] ?? '';
+    $day = $article['jour'] ?? '';
+    if (!is_string($year) || !is_string($month) || !is_string($day)
+        || !elodie_cms_valid_article_date($year, $month, $day)) {
+        return '';
+    }
 
-case 'articles': tarticles(); break;
+    $months = [
+        'fr' => ['', 'janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'],
+        'en' => ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+        'es' => ['', 'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'],
+        'nl' => ['', 'januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'],
+    ];
+    $monthNumber = (int) $month;
 
-case 'erreurs': terreurs(); break;
-
-default : tprofil();
+    return (int) $day . ' ' . $months[$language][$monthNumber] . ' ' . $year;
 }
 
-echo'
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="Generator" content="Elodie CMS '.elodie_cms_escape(elodie_cms_version()).'" />
-<link rel="alternate" type="application/rss+xml" title="flux rss" href="rss.php" />
-<link rel="stylesheet" type="text/css" href="'.base64_decode($tableau[5]).'/style.css" />';
-
-if (base64_decode($tableau[31])=='') {
-echo'<link rel="shortcut icon" type="image/x-icon" href="'.base64_decode($tableau[5]).'/Favicon.ico" sizes="16x16" />
-<link rel="icon" type="image/x-icon" href="'.base64_decode($tableau[5]).'/Favicon.ico" sizes="16x16" />'
-;}
-else {
-echo'<link rel="shortcut icon" type="image/x-icon" href="'.base64_decode($tableau[31]).'" sizes="16x16" />
-<link rel="icon" type="image/x-icon" href="'.base64_decode($tableau[31]).'" sizes="16x16" />'
-;}
-
-
-
-echo'</head>';
-
-echo'<body class="home blog"><div id="wrapper"><header id="header">';
-
-if (base64_decode($tableau[26])=='') {echo '<h1 id="site-title">'.base64_decode($tableau[0]).'</h1>';}
-else if (base64_decode($tableau[27])=='') {echo '<h1 id="site-title"><img src="'.base64_decode($tableau[26]).'" alt="'.base64_decode($tableau[0]).'"></h1>';}
-else {echo '<h1 id="site-title"><img src="'.base64_decode($tableau[26]).'" alt="'.base64_decode($tableau[27]).'"></h1>';}
-
-echo'</header><div id="content"><article style="min-height:270px !important;">
-
-<style type="text/css">
-article{
-min-height:0px !important;
-};
-</style>';
-
-switch (is_string($_GET['module'] ?? null) ? $_GET['module'] : '')
-{
-
-case 'articles': articles(); comments(); break;
-
-case 'erreurs': erreurs(); break;
-
-default : profil();
-}
-
-echo'</article>';
-
-echo'<div id="piedpage">';
-
-echo '<div class="older-posts">';
-
-if (base64_decode($tableau[4])=='on') {krsort($allnews);}
-else if (base64_decode($tableau[4])=='off') {};
-
-foreach($allnews as $i => $news) { 
-
-$i2 = $i + 1 ;
-
-echo'<a href="'.base64_decode($tableau[5]).'/index2.php?module=articles&page=' . $i2 . '" style="padding:5px;margin-left:10px;">' . $i2 . '</a>';
-
-}
-
-echo'</div></div>';
-
-echo'</div></div></div>';
-
-echo'</body></html>';
- 
 ?>
+<!DOCTYPE html>
+<html lang="<?= elodie_cms_escape($siteLanguage) ?>">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="Elodie CMS <?= elodie_cms_escape(elodie_cms_version()) ?>">
+    <meta name="description" content="<?= elodie_cms_escape($siteName) ?>">
+    <title><?= elodie_cms_escape($pageTitle) ?></title>
+    <link rel="alternate" type="application/rss+xml" title="Flux RSS" href="rss.php">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="blog-site">
+    <div class="site-shell">
+        <header class="site-header">
+            <a class="site-brand" href="index2.php">
+                <?php if ($logoUrl !== ''): ?>
+                    <img class="site-brand-logo" src="<?= elodie_cms_escape($logoUrl) ?>" alt="<?= elodie_cms_escape($logoAlt) ?>">
+                <?php else: ?>
+                    <span class="site-brand-name"><?= elodie_cms_escape($siteName) ?></span>
+                <?php endif; ?>
+                <span class="site-brand-tagline">Articles, idées et découvertes</span>
+            </a>
+            <nav class="site-nav" aria-label="Navigation principale">
+                <a href="index2.php"<?= $module === 'home' ? ' aria-current="page"' : '' ?>>Accueil</a>
+                <a href="index2.php?module=about"<?= $module === 'about' ? ' aria-current="page"' : '' ?>>À propos</a>
+                <a href="rss.php">Flux RSS</a>
+                <?php if (base64_decode($settings[9] ?? '', true) !== 'off'): ?>
+                    <a href="admin/">Administration</a>
+                <?php endif; ?>
+            </nav>
+        </header>
+
+        <main class="site-main">
+            <?php if ($module === 'articles' && $article !== null && $articlePage !== null): ?>
+                <article class="post post-single">
+                    <p class="post-eyebrow">Article</p>
+                    <h1><?= elodie_cms_escape_legacy_text($article['titre']) ?></h1>
+                    <p class="post-meta">
+                        <?php if (elodie_cms_blog_date($article, $siteLanguage) !== ''): ?>
+                            <time><?= elodie_cms_escape(elodie_cms_blog_date($article, $siteLanguage)) ?></time>
+                        <?php endif; ?>
+                        <?php if ($authorName !== ''): ?>
+                            <span>Par <?= elodie_cms_escape($authorName) ?></span>
+                        <?php endif; ?>
+                    </p>
+                    <div class="post-content"><?= elodie_cms_sanitize_article_html($article['contenu']) ?></div>
+                    <p class="post-back"><a href="index2.php">← Retour aux articles</a></p>
+                </article>
+                <?php comments(); ?>
+            <?php elseif ($module === 'about'): ?>
+                <section class="about-card">
+                    <p class="post-eyebrow">À propos</p>
+                    <h1><?= elodie_cms_escape($authorName !== '' ? $authorName : $siteName) ?></h1>
+                    <?php if (is_string($authorActivity) && $authorActivity !== ''): ?>
+                        <p class="about-lead"><?= elodie_cms_escape_legacy_text($authorActivity) ?></p>
+                    <?php endif; ?>
+                    <?php if (is_string($authorBio) && $authorBio !== ''): ?>
+                        <p><?= elodie_cms_escape_legacy_text($authorBio) ?></p>
+                    <?php endif; ?>
+                    <?php if (is_string($authorInterests) && $authorInterests !== ''): ?>
+                        <p><strong>Centres d’intérêt :</strong> <?= elodie_cms_escape_legacy_text($authorInterests) ?></p>
+                    <?php endif; ?>
+                    <p>Elodie CMS 1.00 est la nouvelle version modernisée de UAG CMS. J’en reste l’autrice originale ; la modernisation a été réalisée avec l’aide de GitHub Copilot comme outil complémentaire.</p>
+                    <p>Je suis aussi la créatrice de BlockColor pour Luanti et j’utilise des outils d’intelligence artificielle pour créer de la musique. Mon approche de l’IA est nuancée : je ne suis ni pour ni contre, et reconnais qu’elle peut aider comme outil complémentaire lorsque la santé ou l’énergie sont limitées.</p>
+                </section>
+            <?php elseif ($module === 'erreurs'): ?>
+                <section class="empty-state">
+                    <h1>Page introuvable</h1>
+                    <p>Cette page n’existe pas ou a été déplacée.</p>
+                    <a class="button-link" href="index2.php">Retour à l’accueil</a>
+                </section>
+            <?php else: ?>
+                <section class="archive-heading">
+                    <p class="post-eyebrow">Le blog</p>
+                    <h1>Derniers articles</h1>
+                    <p>Les publications récentes de <?= elodie_cms_escape($siteName) ?>.</p>
+                </section>
+                <?php if ($archiveItems === []): ?>
+                    <section class="empty-state">
+                        <h2>Bienvenue sur le blog</h2>
+                        <p>Les articles apparaîtront ici dès leur publication.</p>
+                    </section>
+                <?php else: ?>
+                    <div class="post-list">
+                        <?php foreach ($archiveItems as $id => $post): ?>
+                            <?php
+                            $postPosition = array_search($id, $articleIds, true);
+                            $postPosition = $postPosition === false ? 1 : $postPosition + 1;
+                            $excerpt = trim(elodie_cms_escape_legacy_text($post['chapo']));
+                            if ($excerpt === '') {
+                                $excerpt = trim(strip_tags(elodie_cms_sanitize_article_html($post['contenu'])));
+                            }
+                            if (preg_match('/^.{0,217}/us', $excerpt, $excerptMatch) === 1
+                                && strlen($excerptMatch[0]) < strlen($excerpt)) {
+                                $excerpt = $excerptMatch[0] . '...';
+                            }
+                            ?>
+                            <article class="post-card">
+                                <p class="post-eyebrow">Publication</p>
+                                <h2><a href="index2.php?module=articles&amp;page=<?= (int) $postPosition ?>"><?= elodie_cms_escape_legacy_text($post['titre']) ?></a></h2>
+                                <p class="post-meta">
+                                    <?php if (elodie_cms_blog_date($post, $siteLanguage) !== ''): ?>
+                                        <time><?= elodie_cms_escape(elodie_cms_blog_date($post, $siteLanguage)) ?></time>
+                                    <?php endif; ?>
+                                    <?php if ($authorName !== ''): ?>
+                                        <span>Par <?= elodie_cms_escape($authorName) ?></span>
+                                    <?php endif; ?>
+                                </p>
+                                <p class="post-excerpt"><?= elodie_cms_escape($excerpt) ?></p>
+                                <a class="read-more" href="index2.php?module=articles&amp;page=<?= (int) $postPosition ?>">Lire l’article <span aria-hidden="true">→</span></a>
+                            </article>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php if ($totalPages > 1): ?>
+                        <nav class="pagination" aria-label="Pagination des articles">
+                            <?php if ($archivePage > 1): ?>
+                                <a href="index2.php?page=<?= $archivePage - 1 ?>">← Plus récents</a>
+                            <?php endif; ?>
+                            <span>Page <?= $archivePage ?> sur <?= $totalPages ?></span>
+                            <?php if ($archivePage < $totalPages): ?>
+                                <a href="index2.php?page=<?= $archivePage + 1 ?>">Plus anciens →</a>
+                            <?php endif; ?>
+                        </nav>
+                    <?php endif; ?>
+                <?php endif; ?>
+            <?php endif; ?>
+        </main>
+
+        <footer class="site-footer">
+            <span><?= elodie_cms_escape($siteName) ?> · Elodie CMS <?= elodie_cms_escape(elodie_cms_version()) ?></span>
+            <span><a href="rss.php">Suivre les publications avec RSS</a> · <a href="LICENSE">Licence MIT</a></span>
+        </footer>
+    </div>
+</body>
+</html>

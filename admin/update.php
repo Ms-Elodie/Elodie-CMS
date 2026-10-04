@@ -75,6 +75,7 @@ if ($checked) {
     <title>Mise à jour - Elodie CMS</title>
     <link rel="stylesheet" href="defaut.css">
     <link rel="stylesheet" href="defaut2.css">
+    <link rel="stylesheet" href="mobile.css">
     <style>
         body { max-width: 48rem; margin: 1rem auto; padding: 0 1rem; }
         .update-panel { margin: 1rem 0; padding: 1rem; border: 1px solid #aaa; background: #fff; }

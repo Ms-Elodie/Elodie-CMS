@@ -24,6 +24,7 @@ background:none !important;
 <link rel="stylesheet" href="defaut.css" />
 <link rel="stylesheet" href="defaut2.css" />
 <link rel="stylesheet" href="jquery/css/ui-lightness/jquery-ui-1.10.2.custom.css" />
+<link rel="stylesheet" href="mobile.css" />
 <script src="js/jquery.coda-slider-3.0.js"></script>
 <script src="js/jquery.min.js"></script>
 <script src="js/jquery-ui.min.js"></script>
