@@ -28,12 +28,13 @@ echo'
 <link rel="stylesheet" href="jquery/css/ui-lightness/jquery-ui-1.10.2.custom.css" />
 <script src="js/jquery.min.js"></script>
 <script src="js/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="mobile.css" />
 
     <script>
         $(function(){
             setInterval(function(){
                 $(\'#ajax-refresh\').load(\'chat.php\');
-            }, 0);
+            }, 30000);
         });
     </script>
 	

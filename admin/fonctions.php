@@ -297,7 +297,6 @@ function public_article_id(array $articles): ?int
 
 function comments(): void
 {
-    echo '</article>';
     if (!elodie_cms_comments_enabled()) {
         return;
     }
@@ -496,7 +495,7 @@ echo'
         $(function(){
             setInterval(function(){
                 $(\'#ajax-refresh\').load(\'chat.php\');
-            }, 0);
+            }, 30000);
         });
     </script>
 
@@ -1378,7 +1377,7 @@ else {
         $(function(){
             setInterval(function(){
                 $(\'#ajax-refresh\').load(\'chat.php\');
-            }, 0);
+            }, 30000);
         });
     </script>
 
@@ -1509,7 +1508,7 @@ echo'
         $(function(){
             setInterval(function(){
                 $(\'#ajax-refresh\').load(\'chat.php\');
-            }, 0);
+            }, 30000);
         });
     </script>
 
