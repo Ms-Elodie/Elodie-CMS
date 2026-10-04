@@ -35,10 +35,6 @@ define('Minutes', 'minuten');
 define('Secondes', 'Seconden'); 
 define('TempsSessions', 'De sessie wordt automatisch gesloten in'); 
 
-define('BonneVersion', 'Uw versie van UAG CMS wordt bijgewerkt'); 
-define('MauvaiseVersion', 'Uw versie van UAG CMS wordt niet bijgewerkt'); 
-
-define('Mots', 'Ontwikkelaar nieuws'); 
 define('Pays', 'Het systeem is thans in het Nederlands.'); 
 
 define('Janvier', 'Januari');
@@ -163,15 +159,15 @@ define('Erreuracceuilb', 'Website van de ontwikkelaar is tijdelijk niet beschikb
 define('NON', 'NEE');
 define('OUI', 'JA');
 define('CHMODCORRECT', 'CHMOD is het goed?');
-define('CHMODCORRECT2', 'CHMOD de mappen moet <b>777</b> en bestanden <b>666</b>.');
+define('CHMODCORRECT2', 'De webserver moet kunnen schrijven naar de data- en Images-mappen. Vermijd <b>777</b>-rechten.');
 
 define('CONFIGOUI', 'De configuratiepagina wordt ingeschakeld, kunt u uw blog .');
 define('IMAGESOUI', 'Vormen het beeld geactiveerd is, kunt u foto\'s .');
 define('ARTICLOUI', 'Items worden ingeschakeld, kunt u schrijven of bewerken van een artikel .');
 
-define('CONFIGNON', 'Het bestand "Configuration.txt" moet CHMOD 666 .');
-define('IMAGESNON', 'De "Images" map moet CHMOD 777 .');
-define('ARTICLNON', 'Het bestand "News.php" moet CHMOD 666.');
+define('CONFIGNON', 'De webserver moet naar de map <b>data</b> kunnen schrijven voor SQLite.');
+define('IMAGESNON', 'De webserver moet naar de map <b>Images</b> kunnen schrijven.');
+define('ARTICLNON', 'De SQLite-database <b>data/uag.sqlite</b> is niet beschrijfbaar.');
 
 
 ?>

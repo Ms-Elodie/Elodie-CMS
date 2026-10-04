@@ -35,10 +35,6 @@ define('Minutes', 'minutas');
 define('Secondes', 'segundos'); 
 define('TempsSessions', 'la sesión se cerrará automáticamente en'); 
 
-define('BonneVersion', 'Su versión de UAG CMS se actualiza'); 
-define('MauvaiseVersion', 'Su versión de CMS UAG no se actualizará');
-
-define('Mots', 'Developer News'); 
 define('Pays', 'El sistema está ahora en Español.'); 
 
 define('Janvier', 'Enero');
@@ -163,15 +159,15 @@ define('Erreuracceuilb', 'The developer\'s website is temporarily unavailable or
 define('NON', 'NO');
 define('OUI', 'SI');
 define('CHMODCORRECT', 'CHMOD es bueno ?');
-define('CHMODCORRECT2', 'CHMOD los directorios debería ser <b>777</b> y los archivos <b>666</b> .');
+define('CHMODCORRECT2', 'El servidor web debe poder escribir en los directorios de datos e Images. Evite los permisos <b>777</b>.');
 
 define('CONFIGOUI', 'La página de configuración está habilitada, puede configurar su blog .');
 define('IMAGESOUI', 'Formar la imagen se activa, puede enviar fotos .');
 define('ARTICLOUI', 'Los productos que están habilitados, puede escribir o editar un artículo .');
 
-define('CONFIGNON', 'El archivo "Configuration.txt" debe ser CHMOD 666 .');
-define('IMAGESNON', 'La carpeta "Images" debería ser CHMOD 777 .');
-define('ARTICLNON', 'El archivo "News.php" debe ser CHMOD 666 .');
+define('CONFIGNON', 'El servidor web debe poder escribir en el directorio <b>data</b> para usar SQLite.');
+define('IMAGESNON', 'El servidor web debe poder escribir en el directorio <b>Images</b>.');
+define('ARTICLNON', 'No se puede escribir en la base de datos SQLite <b>data/uag.sqlite</b>.');
 
 define('Liendimage', 'Voici le lien de votre image');
 ?>

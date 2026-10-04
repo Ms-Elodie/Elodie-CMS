@@ -1,26 +1,10 @@
 <?php
-/******************************************************
+require_once __DIR__ . '/security.php';
 
-# *** LICENCE ***
-# Ce fichier fait partie de UAG CMS
-# http://julien-et-nel.be/UAG/
-#
-# 2012 Jonathan Julien Soulignac <julien-soulignac@live.fr>
-#
-# UAG CMS est un script libre, vous pouvez le redistribuer sous les termes de la 
-# License Libre de Diffusion Gratuite Paternité V1 : http://julien-et-nel.be/LLDGP1/ .
-#
-# En outre, tous les distributeurs de versions non officielles DOIT avertir 
-# l'utilisateur final de celui-ci, par tout moyen visible avant le téléchargement.
-# *** LICENCE ***
-
-******************************************************/
-
-$filename = 'configuration.txt';
-
-if (filesize($filename) > 0) {} 
-
-else { header('Location: ../install.php'); } 
+if (!uag_is_installed()) {
+    header('Location: ../install.php');
+    exit();
+}
 
 
 include('./verif.php');
@@ -34,10 +18,10 @@ echo'
 <head>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <meta http-equiv="x-ua-compatible" content="ie=edge" />
-<title>UAG CMS</title>
-<meta name="Description" content="Administration de UAG CMS" />
+<title>Elodie CMS</title>
+<meta name="Description" content="Administration de Elodie CMS" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="stylesheet" href="defaut.css" />
 <link rel="stylesheet" href="defaut2.css" />
 <link rel="shortcut icon" type="image/x-icon" href="'.base64_decode($tableau[5]).'/Favicon.ico" sizes="16x16" />
@@ -300,12 +284,12 @@ include('chat.php');
 echo'</div>';
 
 echo'</div>
-<div id="header">UAG CMS
+<div id="header">Elodie CMS
 ';
 
 include('includes/centre.php'); 
 
-switch ($_GET['page'])
+switch (is_string($_GET['page'] ?? null) ? $_GET['page'] : '')
 
 {
 

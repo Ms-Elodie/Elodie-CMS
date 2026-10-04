@@ -1,12 +1,16 @@
 <?php
 
-$filename = 'configuration.txt';
+require_once __DIR__ . '/security.php';
 
-if (filesize($filename) > 0) {} 
-
-else { header('Location: ../install.php'); } 
+if (!uag_is_installed()) {
+    header('Location: ../install.php');
+    exit();
+}
 
 include('./verif.php');
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    uag_require_valid_csrf_token();
+}
 error_reporting(0); 
 include 'langues.php';
 require 'fonctions.php';
@@ -55,7 +59,7 @@ background:none !important;
       </script>
 <body onload="whizzywig()">';
 
-switch ($_GET['page'])
+switch (is_string($_GET['page'] ?? null) ? $_GET['page'] : '')
 {
 
 case 'liste': liste_news(); break;
