@@ -1,6 +1,6 @@
-# Elodie CMS 1.00
+# Elodie CMS 1.01 Cat
 
-Elodie CMS 1.00 est la nouvelle version modernisée de UAG CMS, réécrite progressivement pour PHP 8 et SQLite. Elle conserve l’héritage et les données du CMS d’origine tout en adoptant une nouvelle identité et des mécanismes de sécurité actualisés.
+Elodie CMS 1.01 Cat poursuit la modernisation de UAG CMS, amorcée avec Elodie CMS 1.00, en faisant évoluer progressivement le projet vers PHP 8 et SQLite. Cette version renouvelle les interfaces publiques et administratives tout en conservant l’héritage et les données du CMS d’origine.
 
 Elodie CMS est un moteur de blog que j’ai créé à l’origine pour disposer d’une solution maison adaptée à mes besoins. Je reste l’autrice originale du projet. Le code a été modernisé avec l’aide de GitHub Copilot, un outil d’assistance au développement.
 
@@ -10,7 +10,7 @@ Je suis également la créatrice de BlockColor pour Luanti. Mes projets ont pour
 
 Cette version conserve l’interface existante et migre automatiquement les réglages et articles historiques vers une base SQLite au premier démarrage. Les anciens fichiers `admin/configuration.txt` et `news.php` restent en place comme copie de récupération ; toutes les nouvelles modifications sont enregistrées dans `data/elodie-cms.sqlite`. Si `data/uag.sqlite` existe déjà, sa base est copiée vers le nouveau nom sans supprimer l’original.
 
-- PHP 8.2 ou supérieur avec `PDO_SQLite`, `dom` et `fileinfo` (utiliser une version encore maintenue).
+- PHP 8.2 ou supérieur avec `PDO_SQLite`, `dom` et `fileinfo` (utiliser une version encore maintenue). L’extension `ZipArchive`, `allow_url_fopen` et un accès HTTPS sortant vers GitHub sont requis uniquement pour installer les mises à jour depuis l’administration.
 - Le serveur web doit pouvoir créer et écrire dans `data/` et `images/`. La base est exclue de Git et `data/.htaccess` bloque son accès HTTP. Avec Nginx ou un autre serveur, configurez aussi explicitement le refus d’accès HTTP à `data/`.
 - Pour Apache, activer `mod_rewrite` et autoriser les règles `.htaccess` (`AllowOverride`). Elles protègent également les articles historiques et empêchent l’exécution de scripts dans `images/`.
 - En production, activez HTTPS pour tout le site et configurez une règle équivalente de refus d’accès au dossier `data/` si le serveur n’applique pas les fichiers `.htaccess`. Ne faites pas confiance à `X-Forwarded-Proto` sans proxy inverse explicitement configuré et maîtrisé.
@@ -20,11 +20,15 @@ Cette version conserve l’interface existante et migre automatiquement les rég
 - Les mots de passe SHA-1 des anciennes installations de 72 octets ou moins sont migrés vers un hachage moderne à la première connexion réussie. Pour un ancien mot de passe plus long, connectez-vous puis définissez-en un nouveau dans les réglages.
 - Les articles conservent leur mise en forme, mais leur HTML est assaini à l’enregistrement et à l’affichage. Les émoticônes historiques sont converties en emojis Unicode actuels ; les nouveaux emojis s’affichent directement avec la police emoji du système.
 - L’affichage utilise les polices déjà disponibles sur l’appareil, sans chargement de police depuis un service externe.
-- L’administration s’adapte aux écrans mobiles avec des commandes tactiles, des formulaires fluides et des fenêtres de travail adaptées à la taille de l’écran.
+- Le site public et l’administration utilisent une interface responsive adaptée aux téléphones, tablettes et ordinateurs. L’administration possède une navigation persistante sans fenêtres flottantes ni iframes ; les articles, médias, commentaires et réglages s’ouvrent comme des pages normales.
+- L’éditeur d’articles propose un mode visuel, Markdown ou BBCode par article, des outils de mise en forme, l’insertion d’images déjà téléversées et une version texte de secours si JavaScript est désactivé. Le HTML reste assaini côté serveur avant enregistrement et à l’affichage.
+- Les pages d’installation, de connexion et de sécurité reprennent les mêmes styles adaptatifs et présentent leurs formulaires dans des panneaux lisibles sur petit écran.
+- Les libellés historiques du CMS et les dates des articles sont disponibles en français, anglais, espagnol, néerlandais, allemand, italien et portugais.
+- Les interfaces récentes (installation, connexion, administration, sécurité et blog public) utilisent également des traductions dédiées dans ces sept langues.
 - Le site public présente maintenant les articles sous la forme d’un blog classique, avec une page d’accueil éditoriale, des archives paginées, des pages d’article, un lien RSS et une section « À propos » ; l’ancienne interface publique façon système de bureau est retirée.
 - Les scripts, iframes et SVG téléversés ne sont pas acceptés.
 - Les commentaires internes sont désactivés par défaut. Vous pouvez les activer dans les réglages ; les nouveaux messages sont conservés dans SQLite et doivent être approuvés depuis l’administration avant publication. Leur soumission est limitée afin de réduire le spam.
-- Depuis l’administration, vous pouvez demander une vérification des dernières versions publiées sur GitHub. Cette vérification manuelle ne télécharge et n’installe aucun fichier automatiquement ; si une version plus récente existe, le CMS affiche un lien vers ses notes de version.
+- Depuis l’administration, vous pouvez vérifier les versions stables publiées sur GitHub et confirmer explicitement l’installation d’une version plus récente. Le CMS conserve une sauvegarde des fichiers remplacés dans `data/updates/` et préserve la base SQLite, les images, les réglages et les articles historiques. Vérifiez les notes de version et effectuez une sauvegarde complète avant l’installation ; le serveur doit autoriser l’écriture des fichiers du CMS.
 
 ## Licence
 

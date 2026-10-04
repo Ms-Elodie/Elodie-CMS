@@ -60,9 +60,21 @@ function elodie_cms_database(): PDO
             year TEXT NOT NULL,
             content TEXT NOT NULL,
             excerpt TEXT NOT NULL,
-            rating TEXT NOT NULL
+            rating TEXT NOT NULL,
+            content_format TEXT NOT NULL DEFAULT 'visual'
         )'
     );
+    $articleColumns = $database->query('PRAGMA table_info(articles)')->fetchAll();
+    $hasContentFormat = false;
+    foreach ($articleColumns as $column) {
+        if (($column['name'] ?? null) === 'content_format') {
+            $hasContentFormat = true;
+            break;
+        }
+    }
+    if (!$hasContentFormat) {
+        $database->exec("ALTER TABLE articles ADD COLUMN content_format TEXT NOT NULL DEFAULT 'visual'");
+    }
     $database->exec(
         'CREATE TABLE IF NOT EXISTS users (
             username TEXT PRIMARY KEY,
@@ -190,6 +202,9 @@ function elodie_cms_migrate_legacy_data(PDO $database): void
                     throw new RuntimeException('Un article historique est invalide et la migration a été annulée.');
                 }
             }
+            if (!in_array($article['format'] ?? 'visual', ['visual', 'markdown', 'bbcode'], true)) {
+                throw new RuntimeException('Le format d’un article historique est invalide.');
+            }
         }
     }
 
@@ -214,8 +229,8 @@ function elodie_cms_migrate_legacy_data(PDO $database): void
         }
 
         $articleInsert = $database->prepare(
-            'INSERT INTO articles (id, title, day, month, year, content, excerpt, rating)
-             VALUES (:id, :title, :day, :month, :year, :content, :excerpt, :rating)'
+            'INSERT INTO articles (id, title, day, month, year, content, excerpt, rating, content_format)
+             VALUES (:id, :title, :day, :month, :year, :content, :excerpt, :rating, :content_format)'
         );
         foreach ($legacyArticles as $id => $article) {
             $articleInsert->execute([
@@ -227,6 +242,7 @@ function elodie_cms_migrate_legacy_data(PDO $database): void
                 'content' => $article['contenu'],
                 'excerpt' => $article['chapo'],
                 'rating' => $article['note'],
+                'content_format' => $article['format'] ?? 'visual',
             ]);
         }
 
@@ -390,7 +406,7 @@ function elodie_cms_read_news(string $legacyPath = ''): array
 {
     $articles = [];
     $statement = elodie_cms_database()->query(
-        'SELECT id, title, day, month, year, content, excerpt, rating FROM articles ORDER BY id ASC'
+        'SELECT id, title, day, month, year, content, excerpt, rating, content_format FROM articles ORDER BY id ASC'
     );
     foreach ($statement as $row) {
         $articles[(int) $row['id']] = [
@@ -401,6 +417,7 @@ function elodie_cms_read_news(string $legacyPath = ''): array
             'contenu' => $row['content'],
             'chapo' => $row['excerpt'],
             'note' => $row['rating'],
+            'format' => $row['content_format'],
         ];
     }
 
@@ -414,8 +431,8 @@ function elodie_cms_write_news(string $legacyPath, array $articles): void
     try {
         $database->exec('DELETE FROM articles');
         $statement = $database->prepare(
-            'INSERT INTO articles (id, title, day, month, year, content, excerpt, rating)
-             VALUES (:id, :title, :day, :month, :year, :content, :excerpt, :rating)'
+            'INSERT INTO articles (id, title, day, month, year, content, excerpt, rating, content_format)
+             VALUES (:id, :title, :day, :month, :year, :content, :excerpt, :rating, :content_format)'
         );
         foreach ($articles as $id => $article) {
             if ((!is_int($id) && !(is_string($id) && ctype_digit($id)))
@@ -428,6 +445,10 @@ function elodie_cms_write_news(string $legacyPath, array $articles): void
                     throw new InvalidArgumentException('Un article à enregistrer est invalide.');
                 }
             }
+            $format = $article['format'] ?? 'visual';
+            if (!is_string($format) || !in_array($format, ['visual', 'markdown', 'bbcode'], true)) {
+                throw new InvalidArgumentException('Le format d’un article à enregistrer est invalide.');
+            }
             $statement->execute([
                 'id' => (int) $id,
                 'title' => $article['titre'],
@@ -437,6 +458,7 @@ function elodie_cms_write_news(string $legacyPath, array $articles): void
                 'content' => $article['contenu'],
                 'excerpt' => $article['chapo'],
                 'rating' => $article['note'],
+                'content_format' => $format,
             ]);
         }
         $database->exec('DELETE FROM comments WHERE article_id NOT IN (SELECT id FROM articles)');

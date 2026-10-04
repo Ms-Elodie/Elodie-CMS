@@ -34,6 +34,10 @@ body {
     color: var(--ink);
     font-size: 1rem;
     line-height: 1.7;
+    background-image: linear-gradient(rgb(244 246 248 / 90%), rgb(244 246 248 / 90%)), var(--site-wallpaper, none);
+    background-attachment: fixed;
+    background-position: center;
+    background-size: cover;
 }
 
 a {
@@ -85,6 +89,12 @@ code {
     text-decoration: none;
 }
 
+.site-header > .site-brand,
+.site-header > .site-nav {
+    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-left: max(1rem, env(safe-area-inset-left));
+}
+
 .site-brand:hover {
     color: var(--ink);
 }
@@ -131,6 +141,7 @@ code {
     font-size: .9rem;
     font-weight: 600;
     text-decoration: none;
+    touch-action: manipulation;
 }
 
 .site-nav a:hover,
@@ -143,7 +154,7 @@ code {
 }
 
 .site-main {
-    width: min(100% - 2rem, 48rem);
+    width: min(100% - 2rem, 68rem);
     flex: 1 0 auto;
     margin: 2.5rem auto 4rem;
 }
@@ -173,6 +184,7 @@ code {
 
 .post-list {
     display: grid;
+    grid-template-columns: 1fr;
     gap: 1rem;
 }
 
@@ -187,6 +199,14 @@ code {
     border-radius: .8rem;
     background: var(--surface);
     box-shadow: 0 4px 18px rgb(32 43 56 / 4%);
+}
+
+.post-single,
+.about-card,
+.empty-state {
+    max-width: 48rem;
+    margin-right: auto;
+    margin-left: auto;
 }
 
 .post-eyebrow {
@@ -430,6 +450,35 @@ code {
     color: var(--muted);
 }
 
+.site-footer a {
+    display: inline-flex;
+    min-height: 2.5rem;
+    align-items: center;
+}
+
+@media (min-width: 760px) {
+    .post-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.25rem;
+    }
+
+    .post-card {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .post-excerpt {
+        flex: 1;
+    }
+}
+
+@media (min-width: 1180px) {
+    .post-list {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
 @media (max-width: 600px) {
     .site-brand {
         width: calc(100% - 2rem);
@@ -455,6 +504,14 @@ code {
     .site-main {
         width: calc(100% - 1.25rem);
         margin: 1.25rem auto 2rem;
+    }
+
+    body {
+        background-attachment: scroll;
+    }
+
+    .post-list {
+        grid-template-columns: 1fr;
     }
 
     .post-list {

@@ -1,284 +1,8 @@
 <?php
 require_once __DIR__ . '/security.php';
+require_once __DIR__ . '/markup.php';
 
-/* BLOG */
-
-function lien1()   {
-
-$fichier='admin/configuration.txt';
-$tableau=array();
-$tableau=lire_array($fichier);
-
-echo'<iframe src="'.base64_decode($tableau[23]).'" style="min-width:100%;min-height:550px !important;background:black !important;background-image:none;"></iframe>
-
-<a href="'.base64_decode($tableau[23]).'" target="cwindow"></a>';
-
-}
-
-function lien2()   {
-
-$fichier='admin/configuration.txt';
-$tableau=array();
-$tableau=lire_array($fichier);
-
-echo'<iframe src="'.base64_decode($tableau[25]).'" style="min-width:100%;min-height:550px !important;background:black !important;background-image:none;"></iframe>
-
-<a href="'.base64_decode($tableau[25]).'" target="cwindow"></a>';
-
-}
-
-function RSS()   {
-
-$fichier='admin/configuration.txt';
-$tableau=array();
-$tableau=lire_array($fichier);
-
-echo'<iframe src="'.base64_decode($tableau[5]).'/rss.php" style="min-width:100%;min-height:550px !important;background:black !important;background-image:none;"></iframe>
-
-<a href="'.base64_decode($tableau[5]).'/rss.php" target="cwindow"></a>';
-
-}
-
-function blog2()   {
-
-$fichier='admin/configuration.txt';
-$tableau=array();
-$tableau=lire_array($fichier);
-
-echo'
-
-<iframe src="'.base64_decode($tableau[5]).'/index2.php" style="min-width:100%;min-height:550px !important;background:black !important;background-image:none;"></iframe>
-
-<a href="'.base64_decode($tableau[5]).'/index2.php" target="cwindow"></a>
-
-';
-
-}
-
-function blog()   {
-
-$fichier='configuration.txt';
-$tableau=array();
-$tableau=lire_array($fichier);
-
-echo'
-
-<iframe src="'.base64_decode($tableau[5]).'/index2.php" style="min-width:100%;min-height:550px !important;background:black !important;background-image:none;"></iframe>
-
-<a href="'.base64_decode($tableau[5]).'/index2.php" target="cwindow"></a>';
-
-}
-
-/* erreurs */
-
-function terreurs()   {
-
-include ('admin/includes/config1.php');
-
-echo'<title>'.base64_decode($tableau[0]).' - 404</title>';
-
-}
-
-function erreurs()   {
-
-include ('admin/includes/config1.php');
-
-echo'<h2>404</h2><center><img src="'.base64_decode($tableau[5]).'/404.gif" alt="404" width="180px"></center><div id="article" style="padding-left:10px"><br/><h1>'.error.'</h1>';
-
-}
-
-/* Articles */
-
-function tarticles()  {
-
-include ('admin/includes/config1.php');
-
-ob_start('ob_gzhandler'); register_shutdown_function('ob_end_flush');
-
-$allnews = elodie_cms_read_news(__DIR__ . '/../news.php');
-
-$nb_messagetotal = count($allnews);
-
-$nbPages = ceil($nb_messagetotal / 1);
-
-$requestedPage = $_GET['page'] ?? null;
-$page = is_string($requestedPage) && ctype_digit($requestedPage)
-    ? max(0, min($nbPages - 1, (int) $requestedPage - 1))
-    : 0;
-
-$liste_news = array_slice($allnews, max(0, $page ?? 0), 1);
-
-if(!empty($liste_news)) { foreach($liste_news as $id => $news) {
-
-echo'<title>'.elodie_cms_escape_legacy_text(base64_decode($tableau[0])).' - '.elodie_cms_escape_legacy_text($news['titre']).'</title><meta name="Description" content="'.elodie_cms_escape_legacy_text($news['chapo']).'">';	} }
-
-else { echo'<title>'.base64_decode($tableau[0]).' - '.Informations.'</title><meta name="Description" content="'.PasdeNews.'">'; };
-
-}
-
-function articles()  {
-
-include ('admin/includes/config1.php');
-
-ob_start('ob_gzhandler'); register_shutdown_function('ob_end_flush');
-
-$allnews = elodie_cms_read_news(__DIR__ . '/../news.php');
-
-$nb_messagetotal = count($allnews);
-
-$nbPages = ceil($nb_messagetotal / 1);
-
-$requestedPage = $_GET['page'] ?? null;
-$page = is_string($requestedPage) && ctype_digit($requestedPage)
-    ? max(0, min($nbPages - 1, (int) $requestedPage - 1))
-    : 0;
-
-$liste_news = array_slice($allnews, max(0, $page ?? 0), 1);
-
-
-if(!empty($liste_news)) { foreach($liste_news as $id => $news) {
-
-echo'<h2><a href=""><strong>'.elodie_cms_escape_legacy_text($news['titre']).' '.Par.' '.elodie_cms_escape_legacy_text(base64_decode($tableau[2])).' - ';
-
-if (base64_decode($tableau[1])=='fr') { 
-
-if (base64_decode($tableau[10])=='on') { 
-
-echo elodie_cms_escape_legacy_text($news['jour']).' ';
-
-if     ($news['mois']=='01') {echo ''.Janvier.'' ;}
-elseif ($news['mois']=='02') {echo ''.Fevrier.'' ;}
-elseif ($news['mois']=='03') {echo ''.Mars.'' ;}
-elseif ($news['mois']=='04') {echo ''.Avril.'' ;}
-elseif ($news['mois']=='05') {echo ''.Mai.'' ;}
-elseif ($news['mois']=='06') {echo ''.Juin.'' ;}
-elseif ($news['mois']=='07') {echo ''.Juillet.'' ;}
-elseif ($news['mois']=='08') {echo ''.Aout.'' ;}
-elseif ($news['mois']=='09') {echo ''.Septembre.'' ;}
-elseif ($news['mois']=='10') {echo ''.Octobre.'' ;}
-elseif ($news['mois']=='11') {echo ''.Novembre.'' ;}
-elseif ($news['mois']=='12') {echo ''.Decembre.'' ;}
-
-echo ' '.elodie_cms_escape_legacy_text($news['annee']).' ';
-
- }
-
-elseif (base64_decode($tableau[10])=='off') { echo' '.elodie_cms_escape_legacy_text($news['jour']).'-'.elodie_cms_escape_legacy_text($news['mois']).'-'.elodie_cms_escape_legacy_text($news['annee']).' '; } }
-
-else { 
-
-if (base64_decode($tableau[10])=='on') { 
-
-echo elodie_cms_escape_legacy_text($news['annee']).' ';
-
-if     ($news['mois']=='01') {echo ''.Janvier.'' ;}
-elseif ($news['mois']=='02') {echo ''.Fevrier.'' ;}
-elseif ($news['mois']=='03') {echo ''.Mars.'' ;}
-elseif ($news['mois']=='04') {echo ''.Avril.'' ;}
-elseif ($news['mois']=='05') {echo ''.Mai.'' ;}
-elseif ($news['mois']=='06') {echo ''.Juin.'' ;}
-elseif ($news['mois']=='07') {echo ''.Juillet.'' ;}
-elseif ($news['mois']=='08') {echo ''.Aout.'' ;}
-elseif ($news['mois']=='09') {echo ''.Septembre.'' ;}
-elseif ($news['mois']=='10') {echo ''.Octobre.'' ;}
-elseif ($news['mois']=='11') {echo ''.Novembre.'' ;}
-elseif ($news['mois']=='12') {echo ''.Decembre.'' ;}
-
-echo ' '.elodie_cms_escape_legacy_text($news['jour']).' ';
-
- }
-
-elseif (base64_decode($tableau[10])=='off') { echo' '.elodie_cms_escape_legacy_text($news['annee']).'-'.elodie_cms_escape_legacy_text($news['mois']).'-'.elodie_cms_escape_legacy_text($news['jour']).' '; } }
-
-echo'</strong></a></h2><div id="article" style="padding-left:10px">'.elodie_cms_sanitize_article_html($news['contenu']).'</div>';
-
-}
-}
-
-else { header('Location: erreur.php'); }
-
-echo'</article><article style="min-height:0px;font-weight:bold;text-align:center;">'.Note.' :';
-
-if ($news['note']=='0') {
-
-echo'
-<img src="/admin/images/etoile0.png" alt="0">
-<img src="/admin/images/etoile0.png" alt="0">
-<img src="/admin/images/etoile0.png" alt="0">
-<img src="/admin/images/etoile0.png" alt="0">
-<img src="/admin/images/etoile0.png" alt="0">
-';
-}
-
-elseif ($news['note']=='1') {
-
-echo'
-<img src="/admin/images/etoile1.png" alt="1">
-<img src="/admin/images/etoile0.png" alt="0">
-<img src="/admin/images/etoile0.png" alt="0">
-<img src="/admin/images/etoile0.png" alt="0">
-<img src="/admin/images/etoile0.png" alt="0">
-';
-}
-
-elseif ($news['note']=='2') {
-
-echo'
-<img src="/admin/images/etoile1.png" alt="1">
-<img src="/admin/images/etoile1.png" alt="1">
-<img src="/admin/images/etoile0.png" alt="0">
-<img src="/admin/images/etoile0.png" alt="0">
-<img src="/admin/images/etoile0.png" alt="0">
-';
-}
-
-elseif ($news['note']=='3') {
-
-echo'
-<img src="/admin/images/etoile1.png" alt="1">
-<img src="/admin/images/etoile1.png" alt="1">
-<img src="/admin/images/etoile1.png" alt="1">
-<img src="/admin/images/etoile0.png" alt="0">
-<img src="/admin/images/etoile0.png" alt="0">
-';
-}
-
-elseif ($news['note']=='4') {
-
-echo'
-<img src="/admin/images/etoile1.png" alt="1">
-<img src="/admin/images/etoile1.png" alt="1">
-<img src="/admin/images/etoile1.png" alt="1">
-<img src="/admin/images/etoile1.png" alt="1">
-<img src="/admin/images/etoile0.png" alt="0">
-';
-}
-
-elseif ($news['note']=='5') {
-
-echo'
-<img src="/admin/images/etoile1.png" alt="1">
-<img src="/admin/images/etoile1.png" alt="1">
-<img src="/admin/images/etoile1.png" alt="1">
-<img src="/admin/images/etoile1.png" alt="1">
-<img src="/admin/images/etoile1.png" alt="1">
-';
-}
-
-elseif ($news['note']=='Off') {
-
-echo'
-Off
-';
-}
-
-else {
-
-echo'
-Off
-';
-}
-}
+/* Public comments */
 
 function public_article_id(array $articles): ?int
 {
@@ -306,9 +30,9 @@ function comments(): void
         return;
     }
 
-    echo '<article class="comments"><h2>Commentaires</h2>';
+    echo '<article class="comments"><h2>' . elodie_cms_escape(elodie_cms_ui('comments')) . '</h2>';
     if (($_GET['comment'] ?? '') === 'sent') {
-        echo '<p role="status">Votre commentaire a été envoyé et sera visible après validation.</p>';
+        echo '<p role="status">' . elodie_cms_escape(elodie_cms_ui('comments_sent')) . '</p>';
     }
     foreach (elodie_cms_comments_for_article($articleId) as $comment) {
         echo '<section class="comment"><h3>' . elodie_cms_escape($comment['author']) . '</h3>';
@@ -320,122 +44,11 @@ function comments(): void
         . (int) ($_GET['page'] ?? 1) . '">'
         . elodie_cms_csrf_input()
         . '<input type="hidden" name="comment_submit" value="1">'
-        . '<label for="comment-author">Nom</label>'
+        . '<label for="comment-author">' . elodie_cms_escape(elodie_cms_ui('name')) . '</label>'
         . '<input id="comment-author" name="author" maxlength="120" required autocomplete="name">'
-        . '<label for="comment-body">Commentaire</label>'
+        . '<label for="comment-body">' . elodie_cms_escape(elodie_cms_ui('comment')) . '</label>'
         . '<textarea id="comment-body" name="body" maxlength="5000" required rows="6"></textarea>'
-        . '<button type="submit">Envoyer le commentaire</button></form></article>';
-}
-
-/* Profil */
-
-function tprofil()  {
-
-include ('admin/includes/config1.php');
-
-if ((base64_decode($tableau[11])=='') && (base64_decode($tableau[12])=='')) {echo'<title>'.base64_decode($tableau[0]).' - '.Nonrenseigne.'</title>';}
-
-else {echo'<title>'.base64_decode($tableau[0]).' - '.base64_decode($tableau[11]).' '.base64_decode($tableau[12]).'</title>';};	
-
-}
-
-function profil()  {
-
-include ('admin/includes/config1.php');
-
-echo'<h2>'.Profil.'</h2><div id="article" style="padding-left:10px">
-
-<h1>';
-if ((base64_decode($tableau[11])=='') && (base64_decode($tableau[12])=='')) {echo Nonrenseigne;}
-
-else {echo''.base64_decode($tableau[11]).' '.base64_decode($tableau[12]).'';};
-
-if ((base64_decode($tableau[13])=='') && (base64_decode($tableau[14])=='')) {echo '</h1>';}
-
-else {
-
-echo' ( ';
-
-function age($naiss)  {
-  $dateParts = preg_split('~[/.]~', $naiss);
-  if (!is_array($dateParts) || count($dateParts) !== 3
-      || !elodie_cms_valid_article_date($dateParts[0], $dateParts[1], $dateParts[2])) {
-      return;
-  }
-  [$annee, $mois, $jour] = $dateParts;
-  $today['mois'] = date('n');
-  $today['jour'] = date('j');
-  $today['annee'] = date('Y');
-  $annees = $today['annee'] - $annee;
-  if ($today['mois'] <= $mois) {
-    if ($mois == $today['mois']) {
-      if ($jour > $today['jour'])
-        $annees--;
-      }
-    else
-      $annees--;
-    }
-	
-if ((base64_decode($tableau[13])=='') && (base64_decode($tableau[28])=='') && (base64_decode($tableau[29])=='')) {echo '';}
-
-else {
-  echo $annees; echo' ans ';
-  
-  }  }
-age(''.base64_decode($tableau[13]).'/'.base64_decode($tableau[28]).'/'.base64_decode($tableau[29]).'');  
-
-if (base64_decode($tableau[14])=='Monde') {echo Monde;}
-
-else {echo''.base64_decode($tableau[14]).'';};
-
-echo' <img src="'.base64_decode($tableau[5]).'/admin/images/pays/'.base64_decode($tableau[14]).'.png" alt="'.base64_decode($tableau[14]).'" style="border: black 1px solid;"> )</h1>';};
-
-echo'<table>
-<tr>
-<td><img src="';
-
-if (base64_decode($tableau[15])=='') {echo ''.base64_decode($tableau[5]).'/photo.png';}
-
-else {echo''.base64_decode($tableau[15]).'';};
-
-echo'" alt="" style="border: solid #DDDDDD;
-border-radius: 4px;
-display: block;
-height:200px;width:200px;
-margin-right:10px;"/></td>
-
-<td style="padding:30px;">
-<h2 style="
-font-family:sans-serif;
-font-size: 22px;
-font-weight: 700;
-line-height: 24px;
-margin-bottom: 20px;
-">';
-
-if (base64_decode($tableau[19])=='') {echo Defaut;}
-else {echo''.base64_decode($tableau[19]).'';};
-
-echo'</h2>';
-
-if ((base64_decode($tableau[20])=='') && (base64_decode($tableau[21])=='')) {echo '<p>'.Loisirs.' </td>';}
-
-else {echo'<p>'.base64_decode($tableau[20]).'</p><p><b>Loisirs  :</b> '.base64_decode($tableau[21]).'</p></td>';};
-
-
-echo'<td>';
-
-if (base64_decode($tableau[17])=='') {echo '';}
-else { echo'<p><a href="https://fr-fr.facebook.com/'.base64_decode($tableau[17]).'" style="text-decoration:none;">Facebook</a><br/></p>'; };
-
-if (base64_decode($tableau[18])=='') {echo '';}
-else { echo'<p><a href="https://plus.google.com/'.base64_decode($tableau[18]).'" style="text-decoration:none;">Google+</a><br/></p>'; };
-
-if (base64_decode($tableau[16])=='') {echo '';}
-else { echo'<p><a href="https://twitter.com/'.base64_decode($tableau[16]).'" style="text-decoration:none;">Twitter</a></p>'; };
-
-echo'</td></tr></table></div>'; 
-
+        . '<button type="submit">' . elodie_cms_escape(elodie_cms_ui('send_comment')) . '</button></form></article>';
 }
 
 /* ADMINISTRATION */
@@ -470,66 +83,16 @@ $fichier='configuration.txt';
 $tableau=array();
 $tableau=lire_array($fichier);
 
-echo'
-<!DOCTYPE html>
-<html>
-<head>
-<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<meta http-equiv="x-ua-compatible" content="ie=edge" />
-<title>Elodie CMS</title>
-<meta name="Description" content="Administration de Elodie CMS" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="stylesheet" href="defaut.css" />
-<link rel="stylesheet" href="defaut2.css" />
-<link rel="shortcut icon" type="image/x-icon" href="'.base64_decode($tableau[5]).'/Favicon.ico" sizes="16x16" />
-<link rel="icon" type="image/x-icon" href="'.base64_decode($tableau[5]).'/Favicon.ico" sizes="16x16" />
-<link rel="stylesheet" href="jquery/css/ui-lightness/jquery-ui-1.10.2.custom.css" />
-<script src="js/jquery.min.js"></script>
-<script src="js/jquery-ui.min.js"></script>
-<script src="js/jquery.coda-slider-3.0.js"></script>
-
-<script src="js/editeur.js"></script>
-<script type="text/javascript">addEvt(window,\'load\',whizzywig);</script>
-    <script>
-        $(function(){
-            setInterval(function(){
-                $(\'#ajax-refresh\').load(\'chat.php\');
-            }, 30000);
-        });
-    </script>
-
-</head>
-<body>
-<body onload="whizzywig()">';
-
-echo'<style type="text/css">
-td,th{
-border:none !important;
-};
-</style>';
-
 if (($_GET['id'] ?? '') === '2') {
 
-echo'<meta http-equiv="refresh" content="1; URL=index2.php?page=configuration">
-<style type="text/css">
-.ui-dialog,.ui-dialog-content{
-min-height: 0px !important;
-margin:0px !important;
-};
-</style>
-<div class="ui-state-highlight ui-corner-all" style="text-align:center;">
-<p><span class="ui-icon ui-icon-info" style="float: left; margin:auto;text-align:center;margin-right: .3em;margin-left: .3em;"></span>
-'.Modificationeffectuee.'</p></div>';
- 
 $password = $_POST['7'] ?? null;
 if (!is_string($password)) {
     http_response_code(400);
-    exit('Le mot de passe est invalide.');
+    exit(elodie_cms_ui('invalid_password'));
 }
 if ($password !== '' && (strlen($password) < 12 || strlen($password) > 72)) {
     http_response_code(400);
-    exit('Le mot de passe doit contenir entre 12 et 72 octets.');
+    exit(elodie_cms_ui('password_length'));
 }
 $currentPasswordHash = base64_decode($tableau[7] ?? '', true);
 if ($password === '' && (!is_string($currentPasswordHash) || $currentPasswordHash === '')) {
@@ -547,27 +110,27 @@ for ($index = 0; $index < 32; $index++) {
     $value = html_entity_decode(elodie_cms_post_string((string) $index), ENT_QUOTES | ENT_HTML5, 'UTF-8');
     if (in_array($index, [15, 23, 25, 26, 30, 31], true) && !elodie_cms_valid_url_setting($value)) {
         http_response_code(400);
-        exit('Une adresse de ressource est invalide.');
+        exit(elodie_cms_ui('invalid_resource_url'));
     }
     if ($index === 5 && !elodie_cms_valid_http_url($value)) {
         http_response_code(400);
-        exit('L’adresse du site est invalide.');
+        exit(elodie_cms_ui('invalid_site_url'));
     }
     if ($index === 3 && !in_array($value, ['on', 'off'], true)) {
         http_response_code(400);
-        exit('Le réglage des commentaires est invalide.');
+        exit(elodie_cms_ui('invalid_option'));
     }
-    if ($index === 1 && !in_array($value, ['en', 'es', 'fr', 'nl'], true)) {
+    if ($index === 1 && !in_array($value, ['de', 'en', 'es', 'fr', 'it', 'nl', 'pt'], true)) {
         http_response_code(400);
-        exit('La langue sélectionnée est invalide.');
+        exit(elodie_cms_ui('invalid_language'));
     }
     if (in_array($index, [4, 9, 10], true) && !in_array($value, ['on', 'off'], true)) {
         http_response_code(400);
-        exit('Une option de configuration est invalide.');
+        exit(elodie_cms_ui('invalid_option'));
     }
     if ($index === 8 && !in_array($value, ['on', 'on2', 'off'], true)) {
         http_response_code(400);
-        exit('Une option de configuration est invalide.');
+        exit(elodie_cms_ui('invalid_option'));
     }
     $settings[$index] = htmlentities($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
@@ -575,6 +138,8 @@ $encodedSettings = array_map('base64_encode', $settings);
 elodie_cms_write_encoded_configuration($encodedSettings);
 $_SESSION['_login'] = html_entity_decode($settings[6], ENT_QUOTES | ENT_HTML5, 'UTF-8');
 $_SESSION['_pass'] = $settings[7];
+header('Location: index.php?page=configuration&saved=1');
+exit();
 
 }
 
@@ -582,20 +147,20 @@ else {
   
 error_reporting(0);
 
-echo'<form action="index2.php?page=configuration&id=2" method="post">'.elodie_cms_csrf_input().'
+echo'<form action="index.php?page=configuration&id=2" method="post">'.elodie_cms_csrf_input().'
 	
-<div class="coda-slider"  id="main-slider">
+<div class="settings-sections">
 <div>
-<div class="coda-slider"  id="showcase">';
+<div class="settings-overview">';
  
 if (base64_decode($tableau[4])==='on') {$paginationOn = 'selected="selected"';}
 elseif (base64_decode($tableau[4])==='off') {$paginationOff = 'selected="selected"';}
 else {$paginationOn = 'selected="selected"';}
 
 echo'<div>
-<h2 class="title" style="display:none;">'.Accueil.'</h2>
+<h2 class="settings-title">'.Accueil.'</h2>
+<p><b>'.BienvenueConfig.'</b></p>
 <table style="margin:auto;padding-right:60px;">
-<p><b>'.BienvenueConfig.'</b></p><br/>
 <tr><td style="padding-left:10px;padding-top:10px;">'.General.'</td><td style="padding-left:20px;padding-top:10px;">'.Generala.'</td> </tr>
 <tr><td style="padding-left:10px;padding-top:10px;">'.Profil.'</td><td style="padding-left:20px;padding-top:10px;">'.Profila.'</td> </tr>
 <tr><td style="padding-left:10px;padding-top:10px;">'.Theme.'</td><td style="padding-left:20px;padding-top:10px;">'.Themea.'</td> </tr>
@@ -603,35 +168,34 @@ echo'<div>
 </table>
 </div>
 <div>
-<h2 class="title" style="display:none;">'.General.'</h2>
+<h2 class="settings-title">'.General.'</h2>
 <table style="margin:auto;padding-right:60px;">
 <tr>
 <td class="titre"></br>'.Titre.'  &nbsp;</td><td></br><input type="text" name="0" value="'.base64_decode($tableau[0]).'" placeholder="'.Titreb.'" STYLE="width:170px;" /></td>
 <td class="titre" style="padding-left:20px;" ></br>'.Langue.'  &nbsp;</td><td></br><SELECT value="'.base64_decode($tableau[1]).'" name="1" STYLE="width:180px;">';
 
-$languages = array(
+$languages = [
+    'de' => 'Deutsch',
+    'en' => 'English',
+    'es' => 'Español',
+    'fr' => 'Français',
+    'it' => 'Italiano',
+    'nl' => 'Nederlands',
+    'pt' => 'Português',
+];
 
-'en' => $selected3, 
-'es' => $selected4,
-'fr' => $selected5,
-'nl' => $selected6 
-
-);
-
-foreach ($languages as $languages1 => $languages2) { 
-
-if (base64_decode($tableau[1])==$languages1) {$languages2 = 'selected="selected"';}
-
-echo'<option '.$languages2.'>'.$languages1.'</option>';
- 
- };
+foreach ($languages as $languageCode => $languageName) {
+    $selected = base64_decode($tableau[1]) === $languageCode ? ' selected="selected"' : '';
+    echo '<option value="' . elodie_cms_escape($languageCode) . '"' . $selected . '>'
+        . elodie_cms_escape($languageName) . '</option>';
+}
 
 echo'</SELECT></td></tr>
 
 <tr><td class="titre"></br>'.Gerant.'  &nbsp;</td><td></br><input type="text" required name="2" value="'.base64_decode($tableau[2]).'" placeholder="'.Webmasterb.'" STYLE="width:170px;"/></td>
-<td class="titre" style="padding-left:20px;"></br>Commentaires internes &nbsp;</td><td></br><select name="3" style="width:180px;">
-<option value="off" '.(base64_decode($tableau[3] ?? '') === 'on' ? '' : 'selected="selected"').'>Désactivés</option>
-<option value="on" '.(base64_decode($tableau[3] ?? '') === 'on' ? 'selected="selected"' : '').'>Activés</option>
+<td class="titre" style="padding-left:20px;"></br>'.elodie_cms_escape(elodie_cms_ui('internal_comments')).' &nbsp;</td><td></br><select name="3" style="width:180px;">
+<option value="off" '.(base64_decode($tableau[3] ?? '') === 'on' ? '' : 'selected="selected"').'>'.elodie_cms_escape(elodie_cms_ui('disabled')).'</option>
+<option value="on" '.(base64_decode($tableau[3] ?? '') === 'on' ? 'selected="selected"' : '').'>'.elodie_cms_escape(elodie_cms_ui('enabled')).'</option>
 </select></td></tr>
 <tr>
 <td class="titre"></br>'.Pagination.'  &nbsp;</td><td></br><SELECT value="'.base64_decode($tableau[4]).'" name="4" STYLE="width:180px;">
@@ -652,7 +216,7 @@ elseif (base64_decode($tableau[8])==='on2') {$selectedon2 = 'selected="selected"
 
 elseif (base64_decode($tableau[8])==='off') {$selectedoff = 'selected="selected"';}
 
-echo'<td class="titre" style="padding-left:20px;"></br>URL Rewriting  &nbsp;</td><td></br><SELECT value="'.base64_decode($tableau[8]).'" name="8" STYLE="width:180px;">
+echo'<td class="titre" style="padding-left:20px;"></br>'.elodie_cms_escape(elodie_cms_ui('url_rewriting')).'  &nbsp;</td><td></br><SELECT value="'.base64_decode($tableau[8]).'" name="8" STYLE="width:180px;">
 <OPTION VALUE="on" '.$selectedon.'>'.urli.'</OPTION>
 <OPTION VALUE="on2" '.$selectedon2.'>'.urlii.'</OPTION>
 <OPTION VALUE="off" '.$selectedoff.'>'.urliii.'</OPTION>
@@ -680,7 +244,7 @@ echo'<td class="titre" style="padding-left:20px;"></br>'.Date.'  &nbsp;</td><td>
 </div>
 
 <div>
-<h2 class="title" style="display:none;">'.Profil.'</h2>
+<h2 class="settings-title">'.Profil.'</h2>
 <table style="margin:auto;padding-right:60px;">
 <tr>
 <td class="profil"></br>'.Prenom.'  &nbsp;</td><td></br><input type="text" name="11" value="'.base64_decode($tableau[11]).'" placeholder="'.Prenoma.'" STYLE="width:170px;" /></td>
@@ -1129,7 +693,7 @@ echo'
 </div>
 
 <div>
-<h2 class="title" style="display:none;">'.Theme.'</h2>
+<h2 class="settings-title">'.Theme.'</h2>
 <table style="margin:auto;padding-right:60px;">
 <tr>
 <td COLSPAN=4><center><br/><b>'.Banniere.'</b></center></td>
@@ -1142,19 +706,19 @@ echo'
 </tr>
 
 <tr>
-<td COLSPAN=4><center><br/><b>Background & Favicon</b></center></td>
+<td COLSPAN=4><center><br/><b>'.elodie_cms_escape(elodie_cms_ui('background_favicon')).'</b></center></td>
 </tr>
 
 <tr>
-<td class="titre"></br>Background &nbsp;</td><td></br><input type="text" name="30" value="'.base64_decode($tableau[30]).'" placeholder="'.LienBackground.'" STYLE="width:170px;" /></td>
+<td class="titre"></br>'.elodie_cms_escape(elodie_cms_ui('background')).' &nbsp;</td><td></br><input type="text" name="30" value="'.base64_decode($tableau[30]).'" placeholder="'.LienBackground.'" STYLE="width:170px;" /></td>
 </tr><tr>
-<td class="profil"></br>Favicon &nbsp;</td><td></br><input type="text" name="31" value="'.base64_decode($tableau[31]).'" placeholder="'.LienFavicon.'" STYLE="width:170px;" /></td>
+<td class="profil"></br>'.elodie_cms_escape(elodie_cms_ui('favicon')).' &nbsp;</td><td></br><input type="text" name="31" value="'.base64_decode($tableau[31]).'" placeholder="'.LienFavicon.'" STYLE="width:170px;" /></td>
 </tr>
 </table>
 </div>
   
 <div>
-<h2 class="title" style="display:none;">Menu</h2>
+<h2 class="settings-title">'.Menu.'</h2>
 <table style="margin:auto;padding-right:60px;">
 <tr>
 <td COLSPAN=4><center><br/><b>'.Menu.'</b></center></td>
@@ -1174,10 +738,12 @@ echo'
 </table>
 </div>
 </div>
+</div>
+</div>
 
 <table style="margin:auto;padding-right:0px;">
 <tr>
-<td class="titre"></br>'.Code.'  &nbsp;</td><td></br><input type="password" autocomplete="new-password" minlength="12" maxlength="72" name="7" value="" placeholder="Laisser vide pour conserver le mot de passe actuel" alt="" STYLE="width:200px;" /></td>
+<td class="titre"></br>'.Code.'  &nbsp;</td><td></br><input type="password" autocomplete="new-password" minlength="12" maxlength="72" name="7" value="" placeholder="'.elodie_cms_escape(elodie_cms_ui('keep_password')).'" alt="" STYLE="width:200px;" /></td>
 </tr>  
 </table>
 		
@@ -1191,49 +757,53 @@ echo'
 
 };
 
-echo'
-</div>
-</div>
-';
-echo'</body>';
 }
 
 /* La liste des News dans l'administration */
 
 function liste_news() {
 
-$fichier='configuration.txt';
-$tableau=array();
-$tableau=lire_array($fichier);
+    $settings = lire_array('configuration.txt');
+    $articles = elodie_cms_read_news(__DIR__ . '/../news.php');
+    if ($articles === []) {
+        echo '<p>' . elodie_cms_escape(elodie_cms_ui('no_articles')) . ' <a href="index.php?page=ajouter">'
+            . elodie_cms_escape(elodie_cms_ui('write_article')) . '</a>.</p>';
+        return;
+    }
 
-echo'<table class="data" style="border-collapse: collapse !important ;"><thead><tr>
-<th style="width:300px;border:1px solid #CCCCCC; text-transform: uppercase; background-color:#E2E2E2;"><center>'.Titre.'</center></th><th style="width:100px;border:1px solid #CCCCCC; text-transform: uppercase; background-color:#E2E2E2;"><center>'.Date.'</center></th><th style="width:100px;border:1px solid #CCCCCC; text-transform: uppercase; background-color:#E2E2E2;"><center>'.Auteur.'</center></th><th style="width:100px;border:1px solid #CCCCCC; text-transform: uppercase; background-color:#E2E2E2;"><center>'.Supprimer.'</center></th><th style="width:100px;border:1px solid #CCCCCC; text-transform: uppercase; background-color:#E2E2E2;"><center>'.Editer.'</center></th></tr></thead></table>';
- 
-$liste_news = elodie_cms_read_news(__DIR__ . '/../news.php');
-if(!empty($liste_news)) {
-	foreach($liste_news as $id => $news) {
-
-echo'<table class="data" style="border-collapse: collapse !important ;">
-<thead><tr >
-<td style="width:300px;border:1px solid #CCCCCC;background-color:#FFF9F4;">';
-echo elodie_cms_escape_legacy_text($news['titre']);
-echo'</td>
-<td style="width:100px;border:1px solid #CCCCCC;background-color:#FFF9F4;text-align:center;">';
-if (base64_decode($tableau[1])=='fr') { echo' '.elodie_cms_escape_legacy_text($news['jour']).'-'.elodie_cms_escape_legacy_text($news['mois']).'-'.elodie_cms_escape_legacy_text($news['annee']).' '; }
-else { echo' '.elodie_cms_escape_legacy_text($news['annee']).'-'.elodie_cms_escape_legacy_text($news['mois']).'-'.elodie_cms_escape_legacy_text($news['jour']).' '; }
-echo'</td>
-<td style="width:100px;border:1px solid #CCCCCC;background-color:#FFF9F4;"><center>';
-echo base64_decode($tableau[2]);
-echo'</center></td><td style="width:100px;border:1px solid #CCCCCC;background-color:#FFF9F4;"><center><form method="post" action="index2.php?page=supprimer">'.elodie_cms_csrf_input().'<input type="hidden" name="id" value="'.(int) $id.'"><button type="submit" aria-label="'.Supprimer.'"><img src="images/supprimer.png" alt="'.Supprimer.'" width="16px"></button></form></center></td><td style="width:100px;border:1px solid #CCCCCC;background-color:#FFF9F4;"><center><a href="index2.php?page=editer&id='.(int) $id.'"><img src="images/edition.png" alt="Editer" width="16px"></a></center></td></tr></thead></table>';
-}
-}
+    echo '<div class="article-table-wrap"><table class="article-table">
+        <thead><tr>
+            <th scope="col">' . Titre . '</th>
+            <th scope="col">' . Date . '</th>
+            <th scope="col">' . Auteur . '</th>
+            <th scope="col">' . elodie_cms_escape(elodie_cms_ui('actions')) . '</th>
+        </tr></thead><tbody>';
+    foreach ($articles as $id => $article) {
+        $date = base64_decode($settings[1] ?? '', true) === 'fr'
+            ? $article['jour'] . '-' . $article['mois'] . '-' . $article['annee']
+            : $article['annee'] . '-' . $article['mois'] . '-' . $article['jour'];
+        echo '<tr>
+            <td data-label="' . elodie_cms_escape(Titre) . '"><strong>' . elodie_cms_escape_legacy_text($article['titre']) . '</strong></td>
+            <td data-label="' . elodie_cms_escape(Date) . '">' . elodie_cms_escape_legacy_text($date) . '</td>
+            <td data-label="' . elodie_cms_escape(Auteur) . '">' . elodie_cms_escape_legacy_text(base64_decode($settings[2] ?? '', true) ?: '') . '</td>
+            <td data-label="' . elodie_cms_escape(elodie_cms_ui('actions')) . '"><div class="article-row-actions">
+                <a class="admin-action-link" href="index.php?page=editer&amp;id=' . (int) $id . '">' . elodie_cms_escape(Editer) . '</a>
+                <form method="post" action="index.php?page=supprimer">
+                    ' . elodie_cms_csrf_input() . '
+                    <input type="hidden" name="id" value="' . (int) $id . '">
+                    <button type="submit" class="admin-danger-button">' . elodie_cms_escape(Supprimer) . '</button>
+                </form>
+            </div></td>
+        </tr>';
+    }
+    echo '</tbody></table></div>';
 } 
 
 /* Le Formulaire pour envoyer les Images */
 
 function formulaire_images() {
 
-echo'<form method="POST" action="index2.php?page=upload" enctype="multipart/form-data">'.elodie_cms_csrf_input().'
+echo'<form method="POST" action="index.php?page=upload" enctype="multipart/form-data">'.elodie_cms_csrf_input().'
      <input type="hidden" name="MAX_FILE_SIZE" value="1048576">
      '.Fichier.' : <input type="file" name="avatar">
      <input type="submit" name="envoyer" value="'.Ok.'">
@@ -1245,73 +815,131 @@ echo'<form method="POST" action="index2.php?page=upload" enctype="multipart/form
 
 function images() {
 
-$fichier='configuration.txt';
-$tableau=array();
-$tableau=lire_array($fichier);
-
-echo'
-
-<style>
-html { float: left; width: 100%;     overflow: auto;
- max-height: 320px !important;; }
-#gallery { float: left; width: 100%;     overflow: auto;
- max-height: 320px !important;; }
-.gallery.custom-state-active { background: #eee; }
-.gallery li { float: left; width: 116px; padding: 0.4em; margin: 0 0.4em 0.4em 0; text-align: center; }
-.gallery li h5 { margin: 0 0 0.4em; }
-.gallery li a { float: right; }
-.gallery li a.ui-icon-zoomin { float: left; }
-.gallery li img { width: 100%; }
-#trash { float: right; width: 32%; min-height: 18em; padding: 1%; }
-#trash h4 { line-height: 16px; margin: 0 0 0.4em; }
-#trash h4 .ui-icon { float: left; }
-#trash .gallery h5 { display: none; }
-</style>
-
- <SCRIPT language=javascript>
-    function OuvrirPopup(page,nom,option) {
-       window.open(page,nom,option);
+    $imageDirectory = __DIR__ . '/../images';
+    $files = scandir($imageDirectory);
+    if ($files === false) {
+        throw new RuntimeException('Impossible de lire le dossier des images.');
     }
-  </SCRIPT>
-  
-<ul id="gallery" class="gallery ui-helper-reset ui-helper-clearfix">';
 
-$dir = '../images/';
-$dir2 = '/images/';
-$valide_extensions = array('jpg', 'jpeg', 'gif', 'png', 'bmp');
+    $allowedExtensions = ['jpg', 'jpeg', 'gif', 'png', 'bmp'];
+    echo '<div class="media-grid">';
+    $count = 0;
+    foreach ($files as $filename) {
+        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        if (!in_array($extension, $allowedExtensions, true)
+            || !is_file($imageDirectory . DIRECTORY_SEPARATOR . $filename)) {
+            continue;
+        }
 
-$Ressource = opendir($dir);
-while($fichier = readdir($Ressource))
-{
-     $berk = array('.', '..');
-
-     $test_Fichier = $dir.$fichier;
-     $test_Fichier2 = $fichier;
-	 $test_Fichier3 = $dir2.$fichier;
-
-
-     if(!in_array($fichier, $berk) && !is_dir($test_Fichier))
-     {
- 	 $ext = strtolower(pathinfo($fichier, PATHINFO_EXTENSION));
-
-         if(in_array($ext, $valide_extensions))
-         {
-echo '<li class="ui-widget-content ui-corner-tr" style="list-style-type:none;margin-top:25px;"><div> <h5 class="ui-widget-header">'.elodie_cms_escape($test_Fichier2).'</h5>
-
-<img src="'.elodie_cms_escape($test_Fichier).'" width="96" height="72">
-
-<div style="text-align:center;"><a href="'.elodie_cms_escape(rtrim(base64_decode($tableau[5]), '/').$test_Fichier3).'" target="_blank" rel="noopener noreferrer" class="ui-icon ui-icon-zoomin" aria-label="Aperçu"></a>
-
-<form method="post" action="index2.php?page=delete">'.elodie_cms_csrf_input().'<input type="hidden" name="id" value="'.elodie_cms_escape($test_Fichier2).'"><button type="submit" class="ui-icon ui-icon-trash" aria-label="'.Supprimer.'">';
-
-echo'</button></form></div></div></li>'; } } }
-
-echo'</ul>'; }
-
-/* Script pour &eacute;viter les slash dans les articles */
-function anti_slash() {
-
+        $safeFilename = elodie_cms_escape($filename);
+        $imageUrl = '../images/' . rawurlencode($filename);
+        echo '<article class="media-card">
+            <a href="' . elodie_cms_escape($imageUrl) . '" target="_blank" rel="noopener noreferrer">
+                <img src="' . elodie_cms_escape($imageUrl) . '" alt="' . $safeFilename . '" loading="lazy">
+            </a>
+            <p class="media-filename">' . $safeFilename . '</p>
+            <div class="media-actions">
+                <a href="' . elodie_cms_escape($imageUrl) . '" target="_blank" rel="noopener noreferrer">'
+                    . elodie_cms_escape(elodie_cms_ui('preview')) . '</a>
+                <form method="post" action="index.php?page=delete">
+                    ' . elodie_cms_csrf_input() . '
+                    <input type="hidden" name="id" value="' . $safeFilename . '">
+                    <button type="submit" aria-label="' . elodie_cms_escape(Supprimer) . '">' . elodie_cms_escape(Supprimer) . '</button>
+                </form>
+            </div>
+        </article>';
+        $count++;
+    }
+    if ($count === 0) {
+        echo '<p class="media-empty">' . elodie_cms_escape(elodie_cms_ui('no_images')) . '</p>';
+    }
+    echo '</div>';
 }
+
+function elodie_cms_article_editor_images(): array
+{
+    $directory = __DIR__ . '/../images';
+    $files = scandir($directory);
+    if ($files === false) {
+        throw new RuntimeException('Impossible de lire le dossier des images.');
+    }
+    $settings = elodie_cms_read_encoded_configuration();
+    $siteUrl = base64_decode($settings[5] ?? '', true);
+    if (!is_string($siteUrl) || !elodie_cms_valid_http_url($siteUrl)) {
+        throw new RuntimeException('L’adresse du site est invalide.');
+    }
+
+    $images = [];
+    foreach ($files as $filename) {
+        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        $path = $directory . DIRECTORY_SEPARATOR . $filename;
+        if (!in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'bmp'], true)
+            || is_link($path)
+            || !is_file($path)
+            || getimagesize($path) === false) {
+            continue;
+        }
+
+        $images[] = [
+            'filename' => $filename,
+            'url' => rtrim($siteUrl, '/') . '/images/' . rawurlencode($filename),
+            'alt' => pathinfo($filename, PATHINFO_FILENAME),
+        ];
+    }
+
+    return $images;
+}
+
+function elodie_cms_article_editor(string $content, string $format = 'visual'): void
+{
+    if ($format === 'visual') {
+        $content = elodie_cms_sanitize_article_html($content);
+    }
+    $images = elodie_cms_article_editor_images();
+    $isVisual = $format === 'visual';
+    echo '<div class="article-editor" data-article-editor'
+        . ' data-empty-article="' . elodie_cms_escape(elodie_cms_ui('empty_article')) . '">
+        <label for="article-format">' . elodie_cms_escape(elodie_cms_ui('format_choice')) . '</label>
+        <select id="article-format" name="format" data-content-format>
+            <option value="visual"' . ($format === 'visual' ? ' selected' : '') . '>' . elodie_cms_escape(elodie_cms_ui('format_visual')) . '</option>
+            <option value="markdown"' . ($format === 'markdown' ? ' selected' : '') . '>' . elodie_cms_escape(elodie_cms_ui('format_markdown')) . '</option>
+            <option value="bbcode"' . ($format === 'bbcode' ? ' selected' : '') . '>' . elodie_cms_escape(elodie_cms_ui('format_bbcode')) . '</option>
+        </select>
+        <p class="article-editor-help" data-format-help>' . elodie_cms_escape(elodie_cms_ui('format_help')) . '</p>
+        <p class="article-editor-help" data-markup-help hidden>' . elodie_cms_escape(elodie_cms_ui('markup_help')) . '</p>
+        <div class="article-editor-toolbar" role="toolbar" aria-label="' . elodie_cms_escape(elodie_cms_ui('editor_toolbar')) . '"' . ($isVisual ? '' : ' hidden') . '>
+            <button type="button" data-editor-command="formatBlock" data-editor-value="H2">' . elodie_cms_escape(Titre) . '</button>
+            <button type="button" data-editor-command="formatBlock" data-editor-value="H3">' . elodie_cms_escape(elodie_cms_ui('subtitle')) . '</button>
+            <button type="button" data-editor-command="formatBlock" data-editor-value="P">' . elodie_cms_escape(elodie_cms_ui('paragraph')) . '</button>
+            <button type="button" data-editor-command="bold" aria-label="' . elodie_cms_escape(elodie_cms_ui('bold')) . '"><strong>B</strong></button>
+            <button type="button" data-editor-command="italic" aria-label="' . elodie_cms_escape(elodie_cms_ui('italic')) . '"><em>I</em></button>
+            <button type="button" data-editor-command="underline" aria-label="' . elodie_cms_escape(elodie_cms_ui('underline')) . '"><u>U</u></button>
+            <button type="button" data-editor-command="justifyLeft" aria-label="' . elodie_cms_escape(elodie_cms_ui('align_left')) . '">' . elodie_cms_escape(elodie_cms_ui('align_left')) . '</button>
+            <button type="button" data-editor-command="justifyCenter" aria-label="' . elodie_cms_escape(elodie_cms_ui('align_center')) . '">' . elodie_cms_escape(elodie_cms_ui('align_center')) . '</button>
+            <button type="button" data-editor-command="justifyRight" aria-label="' . elodie_cms_escape(elodie_cms_ui('align_right')) . '">' . elodie_cms_escape(elodie_cms_ui('align_right')) . '</button>
+            <button type="button" data-editor-command="justifyFull" aria-label="' . elodie_cms_escape(elodie_cms_ui('align_justify')) . '">' . elodie_cms_escape(elodie_cms_ui('align_justify')) . '</button>
+            <button type="button" data-editor-command="insertUnorderedList">' . elodie_cms_escape(elodie_cms_ui('list')) . '</button>
+        </div>
+        <div class="article-image-insert"' . ($isVisual ? '' : ' hidden') . '>
+            <label for="article-image-selection">' . elodie_cms_escape(elodie_cms_ui('choose_image')) . '</label>
+            <select id="article-image-selection" data-editor-image>
+                <option value="">' . elodie_cms_escape(elodie_cms_ui('choose_image')) . '</option>';
+    foreach ($images as $image) {
+        echo '<option value="' . elodie_cms_escape($image['url']) . '" data-alt="'
+            . elodie_cms_escape($image['alt']) . '">' . elodie_cms_escape($image['filename']) . '</option>';
+    }
+    echo '</select>
+            <button type="button" data-insert-image' . ($images === [] ? ' disabled' : '') . '>'
+                . elodie_cms_escape(elodie_cms_ui('insert_image')) . '</button>
+        </div>
+        <p class="article-editor-help"' . ($isVisual ? '' : ' hidden') . '>' . elodie_cms_escape(elodie_cms_ui('editor_help')) . '</p>
+        <p class="article-editor-error" data-editor-error role="alert" hidden></p>
+        <div class="article-editor-canvas" data-editor-canvas role="textbox" aria-label="' . elodie_cms_escape(elodie_cms_ui('article_content')) . '" aria-multiline="true" contenteditable="true" hidden></div>
+        <textarea name="contenu" id="contenu" class="article-editor-source" rows="16" required>'
+        . elodie_cms_escape($content) . '</textarea>
+    </div>';
+}
+
 /* Script pour ajouter une news via l'administration */
 
 function ajout_news() {
@@ -1330,63 +958,35 @@ $contenu = elodie_cms_post_string('contenu');
      $mois = elodie_cms_post_string('mois');
      $annee = elodie_cms_post_string('annee');
 	 $note = elodie_cms_post_string('note');
+     $format = $_POST['format'] ?? 'visual';
+     if (!is_string($format) || !in_array($format, ['visual', 'markdown', 'bbcode'], true)) {
+         throw new InvalidArgumentException('Le format de l’article est invalide.');
+     }
      if (!elodie_cms_valid_article_date($annee, $mois, $jour)
          || !in_array($note, ['Off', '0', '1', '2', '3', '4', '5'], true)) {
          throw new InvalidArgumentException('La date ou la note de l’article est invalide.');
      }
-     $contenu = elodie_cms_sanitize_article_html($contenu);
+     if ($titre === '') {
+         throw new InvalidArgumentException('Le titre de l’article est obligatoire.');
+     }
+     $contenu = $format === 'visual' ? elodie_cms_sanitize_article_html($contenu) : $contenu;
+     $renderedContent = elodie_cms_render_article_content($contenu, $format);
+     if (trim(strip_tags($renderedContent)) === '' && !str_contains($renderedContent, '<img')) {
+         throw new InvalidArgumentException('Le contenu de l’article ne peut pas être vide.');
+     }
 	//On r&eacute;cup&egrave;re les donn&eacute;es d&eacutejà existantes
 	$news = elodie_cms_read_news(__DIR__ . '/../news.php');
-	$news[] = array('titre' => $titre, 'jour' => $jour, 'mois' => $mois, 'annee' => $annee,'contenu' => $contenu, 'chapo' => $chapo, 'note' => $note);
+	$news[] = array('titre' => $titre, 'jour' => $jour, 'mois' => $mois, 'annee' => $annee,'contenu' => $contenu, 'chapo' => $chapo, 'note' => $note, 'format' => $format);
 	elodie_cms_write_news(__DIR__ . '/../news.php', $news);
 	
-      echo '<style type="text/css">
-.ui-dialog,.ui-dialog-content{
-min-height: 0px !important;
-margin:0px !important;
-};
-</style>
-<div class="ui-state-highlight ui-corner-all" style="text-align:center;">
-<p><span class="ui-icon ui-icon-info" style="float: left; margin:auto;text-align:center;margin-right: .3em;margin-left: .3em;"></span>'.NewsAdd.'</p></div>';
+      echo '<p class="admin-notice" role="status">'.NewsAdd.'</p>';
       echo '<br />';
-      echo '<center><a href="index2.php?page=ajouter">'.Retour.'</a></center>';
+      echo '<a href="index.php?page=ajouter">'.Retour.'</a>';
 }
 else {
-	 echo'
-<!DOCTYPE html>
-<html>
-<head>
-<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<meta http-equiv="x-ua-compatible" content="ie=edge" />
-<title>Elodie CMS</title>
-<meta name="Description" content="Administration de Elodie CMS" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="stylesheet" href="defaut.css" />
-<link rel="stylesheet" href="defaut2.css" />
-<link rel="shortcut icon" type="image/x-icon" href="'.base64_decode($tableau[5]).'/Favicon.ico" sizes="16x16" />
-<link rel="icon" type="image/x-icon" href="'.base64_decode($tableau[5]).'/Favicon.ico" sizes="16x16" />
-<link rel="stylesheet" href="jquery/css/ui-lightness/jquery-ui-1.10.2.custom.css" />
-<script src="js/jquery.min.js"></script>
-<script src="js/jquery-ui.min.js"></script>
-<script src="js/jquery.coda-slider-3.0.js"></script>
-
-<script src="js/editeur.js"></script>
-<script type="text/javascript">addEvt(window,\'load\',whizzywig);</script>
-    <script>
-        $(function(){
-            setInterval(function(){
-                $(\'#ajax-refresh\').load(\'chat.php\');
-            }, 30000);
-        });
-    </script>
-
-</head>
-<body>
-<body onload="whizzywig()">	 
-	 
-	 <form action="" method="post">'.elodie_cms_csrf_input().'
-<label for="pseudo">'.Auteur.'</label> :<strong> '.base64_decode($tableau[2]).'</strong> -  <label for="titre">'.Titre.' : </label> <input type="text" required name="titre" id="titre" placeholder="'.Articla.'" /> -  
+	 echo'<form class="article-form" action="index.php?page=ajouter" method="post">'.elodie_cms_csrf_input().'
+<p><strong>'.Auteur.' :</strong> '.elodie_cms_escape_legacy_text(base64_decode($tableau[2] ?? '', true) ?: '').'</p>
+<label for="titre">'.Titre.' : </label> <input type="text" required name="titre" id="titre" placeholder="'.Articla.'" />
 
 <label for="jour">'.Jour.'</label> : <SELECT name="jour" id="jour" STYLE="width:70px;">';
 
@@ -1416,11 +1016,12 @@ echo'</SELECT>
 <OPTION>'.(date('Y')-4).'</OPTION>
 </SELECT>
 
-<br /><br /><label for="chapo"> '.Chapo.' : </label><input type="text" required name="chapo" id="chapo" rows="" cols="" placeholder="'.Articlb.'" style="width: 82%;"/><br /><br />';
+<br /><br /><label for="chapo"> '.Chapo.' : </label><input type="text" name="chapo" id="chapo" placeholder="'.Articlb.'" style="width: 82%;"/><br />
+<p class="article-editor-help">'.elodie_cms_escape(elodie_cms_ui('summary_help')).'</p>';
 
-include ('includes/smiley.php');
+elodie_cms_article_editor('', 'visual');
 
-echo'<textarea name="contenu" id="contenu" rows="" cols="" style="width: 100%;height: 400px;"></textarea>
+echo'
 <br/><label for="note">'.Note.'</label> : <SELECT name="note" id="note" STYLE="width:70px;">';
 
 $notes = array( 'Off','1','2','3','4','5');
@@ -1450,7 +1051,16 @@ if (!isset($news[$newsAmodifier]) || !is_array($news[$newsAmodifier])) {
     http_response_code(404);
     exit('Article introuvable.');
 }
+$currentFormat = $news[$newsAmodifier]['format'] ?? 'visual';
+if (!is_string($currentFormat) || !in_array($currentFormat, ['visual', 'markdown', 'bbcode'], true)) {
+    $currentFormat = 'visual';
+}
 if(isset($_POST['titre']) && isset($_POST['contenu'])) {
+$format = $_POST['format'] ?? 'visual';
+if (!is_string($format) || !in_array($format, ['visual', 'markdown', 'bbcode'], true)) {
+    throw new InvalidArgumentException('Le format de l’article est invalide.');
+}
+$news[$newsAmodifier]['format'] = $format;
 $news[$newsAmodifier]['titre'] = elodie_cms_post_string('titre');
 $news[$newsAmodifier]['jour'] = elodie_cms_post_string('jour');
 $news[$newsAmodifier]['mois'] = elodie_cms_post_string('mois');
@@ -1462,70 +1072,37 @@ if (!elodie_cms_valid_article_date(
 )) {
     throw new InvalidArgumentException('La date de l’article est invalide.');
 }
-$news[$newsAmodifier]['contenu'] = elodie_cms_sanitize_article_html(elodie_cms_post_string('contenu'));
-
-$news[$newsAmodifier]['contenu'] = elodie_cms_sanitize_article_html($news[$newsAmodifier]['contenu']);
+$rawContent = elodie_cms_post_string('contenu');
+$news[$newsAmodifier]['contenu'] = $format === 'visual'
+    ? elodie_cms_sanitize_article_html($rawContent)
+    : $rawContent;
 	$news[$newsAmodifier]['chapo'] = elodie_cms_post_string('chapo');
 	$news[$newsAmodifier]['note'] = elodie_cms_post_string('note');
     if (!in_array($news[$newsAmodifier]['note'], ['Off', '0', '1', '2', '3', '4', '5'], true)) {
         throw new InvalidArgumentException('La note de l’article est invalide.');
     }
+    $renderedContent = elodie_cms_render_article_content($news[$newsAmodifier]['contenu'], $format);
+    if ($news[$newsAmodifier]['titre'] === ''
+        || (trim(strip_tags($renderedContent)) === '' && !str_contains($renderedContent, '<img'))) {
+        throw new InvalidArgumentException('Le titre et le contenu sont obligatoires.');
+    }
 	elodie_cms_write_news(__DIR__ . '/../news.php', $news);
-	echo '<style type="text/css">
-.ui-dialog,.ui-dialog-content{
-min-height: 0px !important;
-margin:0px !important;
-};
-</style>
-<div class="ui-state-highlight ui-corner-all" style="text-align:center;">
-<p><span class="ui-icon ui-icon-info" style="float: left; margin:auto;text-align:center;margin-right: .3em;margin-left: .3em;"></span>'.NewsEdit.'</p></div>';
+	echo '<p class="admin-notice" role="status">'.NewsEdit.'</p>';
 	echo '<br />';
-	echo '<center><a href="index2.php?page=liste">'.Retour.'</a></center>';
+	echo '<a href="index.php?page=liste">'.Retour.'</a>';
 } else {
 
-echo'
-<!DOCTYPE html>
-<html>
-<head>
-<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<meta http-equiv="x-ua-compatible" content="ie=edge" />
-<title>Elodie CMS</title>
-<meta name="Description" content="Administration de Elodie CMS" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="stylesheet" href="defaut.css" />
-<link rel="stylesheet" href="defaut2.css" />
-<link rel="shortcut icon" type="image/x-icon" href="'.base64_decode($tableau[5]).'/Favicon.ico" sizes="16x16" />
-<link rel="icon" type="image/x-icon" href="'.base64_decode($tableau[5]).'/Favicon.ico" sizes="16x16" />
-<link rel="stylesheet" href="jquery/css/ui-lightness/jquery-ui-1.10.2.custom.css" />
-<script src="js/jquery.min.js"></script>
-<script src="js/jquery-ui.min.js"></script>
-<script src="js/jquery.coda-slider-3.0.js"></script>
-
-<script src="js/editeur.js"></script>
-<script type="text/javascript">addEvt(window,\'load\',whizzywig);</script>
-    <script>
-        $(function(){
-            setInterval(function(){
-                $(\'#ajax-refresh\').load(\'chat.php\');
-            }, 30000);
-        });
-    </script>
-
-</head>
-<body>
-<body onload="whizzywig()">
-	
-	<form action="" method="POST">'.elodie_cms_csrf_input().'
+echo'<form class="article-form" action="index.php?page=editer&amp;id='.(int) $newsAmodifier.'" method="post">'.elodie_cms_csrf_input().'
 	'.Auteur.' : <strong>'.elodie_cms_escape_legacy_text(base64_decode($tableau[2])).'</strong> - <label for="titre">'.Titre.' : </label> <input type="text" required name="titre" id="titre"  placeholder="'.Articla.'" value="'.elodie_cms_escape_legacy_text($news[$newsAmodifier]['titre']).'" /> -
 <label for="jour">'.Jour.' : </label> <input type="text" name="jour" id="jour" value="'.elodie_cms_escape_legacy_text($news[$newsAmodifier]['jour']).'" STYLE="width:70px;" readonly="readonly"/ >
 - <label for="mois">'.Mois.' : </label> <input type="text" name="mois" id="mois" value="'.elodie_cms_escape_legacy_text($news[$newsAmodifier]['mois']).'" STYLE="width:70px;" readonly="readonly" />
 - <label for="annee">'.Annee.' : </label> <input type="text" name="annee" id="annee" value="'.elodie_cms_escape_legacy_text($news[$newsAmodifier]['annee']).'" STYLE="width:70px;" readonly="readonly" />
-<br /><br /><label for="chapo">'.Chapo.' : </label><input type="text" required placeholder="'.Articlb.'" name="chapo" id="chapo" rows="" cols="" value="'.elodie_cms_escape_legacy_text($news[$newsAmodifier]['chapo']).'" style="width: 82%;"/><br /><br />';
+<br /><br /><label for="chapo">'.Chapo.' : </label><input type="text" placeholder="'.Articlb.'" name="chapo" id="chapo" value="'.elodie_cms_escape_legacy_text($news[$newsAmodifier]['chapo']).'" style="width: 82%;"/><br />
+<p class="article-editor-help">'.elodie_cms_escape(elodie_cms_ui('summary_help')).'</p>';
 
-include ('includes/smiley.php');
+elodie_cms_article_editor($news[$newsAmodifier]['contenu'], $currentFormat);
 
-echo'<textarea name="contenu" id="contenu" rows="" cols="" style="width: 100%;height: 400px;">'.elodie_cms_sanitize_article_html($news[$newsAmodifier]['contenu']).'</textarea>
+echo'
 	
 <br/><label for="note">'.Note.'</label> : <SELECT name="note" id="note" STYLE="width:70px;">';
 
@@ -1566,15 +1143,16 @@ function connexion_blog() {
 
 elodie_cms_start_session();
 
-echo'<style type="text/css">#titre2 {box-shadow: rgba(200, 200, 200, 0.702) 0px 4px 10px -1px;border: 1px solid #E5E5E5;background: #FFFFFF;font-weight: 400;padding: 24px 24px 24px;text-align:center;color: red;font-size: 12px;width:250px;} #titre {box-shadow: rgba(200, 200, 200, 0.702) 0px 4px 10px -1px;border: 1px solid #E5E5E5;background: #FFFFFF;font-weight: 400;padding: 24px 24px 24px;text-align:center;color: #777777;font-size: 25px;width:250px;} #retour a:hover {font-weight: bold;} #retour a {color: #777777;text-decoration: none;} #retour {box-shadow: rgba(200, 200, 200, 0.702) 0px 4px 10px -1px;border: 1px solid #E5E5E5;background: #FFFFFF;font-weight: 400;padding: 24px 24px 24px;text-align:center;color: #777777;font-size: 12px;width:250px;} #page2 { margin: auto; width: 200px;} #ElodieCMS{text-align:center;font-size: 9px;color: #666666;}#Ok input{color: #FFFFFF;font-weight: 700;background: black !important;border:1px solid #2E83D9;font-size: 14px;} #login form {box-shadow: rgba(200, 200, 200, 0.702) 0px 4px 10px -1px;border: 1px solid #E5E5E5;background: #FFFFFF;font-weight: 400;padding: 24px 24px 24px;text-align:center;color: #777777;font-size: 14px;width:95%;} #login input { box-shadow: inset 1px 1px 2px rgba(200, 200, 200, 0.196);border:1px solid #BBBBBB;background: #F5F5F5; }</style>
-<div id="login"><form action="identification.php" method="post"><b>'.Connexion.'</b><br/><br/>
-     '.Login.' <br/><input type="text" name="login" value="" /><br /><br />
-     '.Code.' <br/><input type="password" name="mdp" value="" /><br /><br />
-     Code Google Authenticator / code de secours<br/><input type="text" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="32" /><br /><br />
-
-  '.elodie_cms_csrf_input().'
-
-     <div id="Ok"><input type="submit" value="'.Ok.'"></div></form></div>';
+echo'<form class="auth-form" action="identification.php" method="post">
+    <label for="login">'.Login.'</label>
+    <input id="login" type="text" name="login" autocomplete="username" required>
+    <label for="password">'.Code.'</label>
+    <input id="password" type="password" name="mdp" autocomplete="current-password" required>
+    <label for="totp">'.elodie_cms_escape(elodie_cms_ui('authenticator_or_recovery')).'</label>
+    <input id="totp" type="text" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="32" required>
+    '.elodie_cms_csrf_input().'
+    <button type="submit">'.Ok.'</button>
+</form>';
 
 }
 
@@ -1602,15 +1180,8 @@ if (!in_array($extension, $allowedExtensions, true)
 if (!unlink($fichier)) {
     throw new RuntimeException('Impossible de supprimer l’image.');
 }
-echo '<meta http-equiv="Refresh" content="2; url=index2.php?page=images" />';
-echo '<style type="text/css">
-.ui-dialog,.ui-dialog-content{
-min-height: 0px !important;
-margin:0px !important;
-};
-</style>
-<div class="ui-state-highlight ui-corner-all" style="text-align:center;">
-<p><span class="ui-icon ui-icon-info" style="float: left; margin:auto;text-align:center;margin-right: .3em;margin-left: .3em;"></span>'.ImageDelete.'</p></div>';
+echo '<meta http-equiv="Refresh" content="2; url=index.php?page=images" />';
+echo '<p class="admin-notice" role="status">'.ImageDelete.'</p>';
 
 }
 
@@ -1621,9 +1192,8 @@ function supprimer_news() {
 //Si l'id pass&eacute; en param&egrave;tre dans l'url n'existe pas, c'est que le visiteur a &eacute;t&eacute; amenen&eacute; ici par hasard
 if(!isset($_POST['id']) || !is_string($_POST['id']) || !ctype_digit($_POST['id'])) {
 	//Donc on redirige vers index.php
-	header('Location: index.php?page=liste');
-	//Puis on stoppe l'ex&eacute;cution du script
-	exit();
+	http_response_code(400);
+	exit('Identifiant d’article invalide.');
 }
 //On r&eacute;cup&egrave;re l'array des news
 $news = elodie_cms_read_news(__DIR__ . '/../news.php');
@@ -1638,27 +1208,13 @@ if(isset($news[$id])) {
 	//Puis on sauvegarde le tout
 	elodie_cms_write_news(__DIR__ . '/../news.php', $news);
 
-echo '<style type="text/css">
-.ui-dialog,.ui-dialog-content{
-min-height: 0px !important;
-margin:0px !important;
-};
-</style>
-<div class="ui-state-highlight ui-corner-all" style="text-align:center;">
-<p><span class="ui-icon ui-icon-info" style="float: left; margin:auto;text-align:center;margin-right: .3em;margin-left: .3em;"></span>'.NewsDelOn.'</p></div>';
+echo '<p class="admin-notice" role="status">'.NewsDelOn.'</p>';
 }
 else {
-echo '<style type="text/css">
-.ui-dialog,.ui-dialog-content{
-min-height: 0px !important;
-margin:0px !important;
-};
-</style>
-<div class="ui-state-error ui-corner-all" style="text-align:center;">
-<p><span class="ui-icon ui-icon-alert" style="float: left; margin:auto;text-align:center;margin-right: .3em;margin-left: .3em;"></span>'.NewsDelOff.'</p></div>';
+echo '<p class="admin-notice admin-notice-error" role="alert">'.NewsDelOff.'</p>';
 }
 echo '<br />';
-echo '<center><a href="index2.php?page=liste">'.Retour.'</a></center>';
+echo '<a href="index.php?page=liste">'.Retour.'</a>';
 
 }
 
@@ -1706,27 +1262,13 @@ $extensions = array('.png', '.gif', '.jpg', '.bmp');
 $extension = $extensionsByMime[$mimeType];
 if(!in_array($extension, $extensions)) 
 {
-     echo '<meta http-equiv="Refresh" content="2; url=index2.php?page=images" />';
-     $erreur = '<style type="text/css">
-.ui-dialog,.ui-dialog-content{
-min-height: 0px !important;
-margin:0px !important;
-};
-</style>
-<div class="ui-state-error ui-corner-all" style="text-align:center;">
-<p><span class="ui-icon ui-icon-alert" style="float: left; margin:auto;text-align:center;margin-right: .3em;margin-left: .3em;"></span>'.ImageUpload.'</p></div>';
+     echo '<meta http-equiv="Refresh" content="2; url=index.php?page=images" />';
+     $erreur = '<p class="admin-notice admin-notice-error" role="alert">'.ImageUpload.'</p>';
 }
 if($taille>$taille_maxi)
 {
-     echo '<meta http-equiv="Refresh" content="2; url=index2.php?page=images" />';
-     $erreur = '<style type="text/css">
-.ui-dialog,.ui-dialog-content{
-min-height: 0px !important;
-margin:0px !important;
-};
-</style>
-<div class="ui-state-error ui-corner-all" style="text-align:center;">
-<p><span class="ui-icon ui-icon-alert" style="float: left; margin:auto;text-align:center;margin-right: .3em;margin-left: .3em;"></span>'.ImageGros.'</p></div>';
+     echo '<meta http-equiv="Refresh" content="2; url=index.php?page=images" />';
+     $erreur = '<p class="admin-notice admin-notice-error" role="alert">'.ImageGros.'</p>';
 }
 if(!isset($erreur)) 
 {
@@ -1736,33 +1278,18 @@ if(!isset($erreur))
      $fichier = preg_replace('/([^.a-z0-9]+)/i', '-', $fichier);
      if(move_uploaded_file($upload['tmp_name'], $dossier . bin2hex(random_bytes(16)) . $extension))
      {
-echo '<meta http-equiv="Refresh" content="2; url=index2.php?page=images" />';
-echo '
-<style type="text/css">
-.ui-dialog,.ui-dialog-content{
-min-height: 0px !important;
-margin:0px !important;
-};
-</style>
-<div class="ui-state-highlight ui-corner-all" style="text-align:center;">
-<p><span class="ui-icon ui-icon-info" style="float: left; margin:auto;text-align:center;margin-right: .3em;margin-left: .3em;"></span>'.ImageSuccess.'</p></div>';
+echo '<meta http-equiv="Refresh" content="2; url=index.php?page=images" />';
+echo '<p class="admin-notice" role="status">'.ImageSuccess.'</p>';
      }
      else 
      {
-	  echo '<meta http-equiv="Refresh" content="2; url=index2.php?page=images" />';
-          echo '<style type="text/css">
-.ui-dialog,.ui-dialog-content{
-min-height: 0px !important;
-margin:0px !important;
-};
-</style>
-<div class="ui-state-error ui-corner-all" style="text-align:center;">
-<p><span class="ui-icon ui-icon-alert" style="float: left; margin:auto;text-align:center;margin-right: .3em;margin-left: .3em;"></span>'.ImageEchec.'</p></div>';
+	  echo '<meta http-equiv="Refresh" content="2; url=index.php?page=images" />';
+          echo '<p class="admin-notice admin-notice-error" role="alert">'.ImageEchec.'</p>';
      }
 }
 else
 {
-     echo '<meta http-equiv="Refresh" content="2; url=index2.php?page=images" />';
+     echo '<meta http-equiv="Refresh" content="2; url=index.php?page=images" />';
      echo $erreur;
 }
 }
