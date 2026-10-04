@@ -34,7 +34,7 @@ body {
     color: var(--ink);
     font-size: 1rem;
     line-height: 1.7;
-    background-image: linear-gradient(rgb(244 246 248 / 90%), rgb(244 246 248 / 90%)), var(--site-wallpaper, none);
+    background-image: var(--site-wallpaper, none);
     background-attachment: fixed;
     background-position: center;
     background-size: cover;
