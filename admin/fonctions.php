@@ -415,7 +415,7 @@ else {
   
 error_reporting(0);
 
-echo'<form action="index.php?page=configuration&id=2" method="post">'.elodie_cms_csrf_input().'
+echo'<form class="configuration-form" action="index.php?page=configuration&id=2" method="post">'.elodie_cms_csrf_input().'
 	
 <div class="settings-sections">
 <div>
@@ -977,9 +977,9 @@ echo '
 		
 <br/> 
 
-<center>
+<div class="configuration-submit-row">
 <input class="submit" type="submit" value="'.Ok.'" name="submit" />
-</center>
+</div>
 </form>
 ';
 
